@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mealmanager/recipe_form.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -21,7 +22,26 @@ class MealManagerState extends State<MealManager> {
         theme: ThemeData(
           primarySwatch: Colors.deepPurple,
         ),
-        home: RecipeList());
+        home: Home());
+  }
+}
+
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Meal Manager'),
+      ),
+      body: RecipeList(),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => RecipeFormHome()));
+        },
+      ),
+    );
   }
 }
 
@@ -59,11 +79,7 @@ class RecipeListState extends State<RecipeList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text('Meal Manager'),
-        ),
-        body: _buildRecipes());
+    return _buildRecipes();
   }
 
   Widget _buildRecipes() {
