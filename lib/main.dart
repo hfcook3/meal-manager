@@ -1,9 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
 import 'recipe_model.dart';
 
 void main() => runApp(MealManager());
 
-class MealManager extends StatelessWidget {
+class MealManager extends StatefulWidget {
+  @override
+  MealManagerState createState() => MealManagerState();
+}
+
+class MealManagerState extends State<MealManager> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,12 +26,36 @@ class MealManager extends StatelessWidget {
 }
 
 class RecipeListState extends State<RecipeList> {
-  final List<Recipe> _recipeList = <Recipe>[
-    new Recipe('Tomato Soup', ['Tomatoes', 'Garlic', 'Cream'],
-        ['Chop garlic', 'Blend tomatoes', 'Put in pot']),
-    new Recipe('Sushi', new List<String>(), new List<String>()),
-    new Recipe('Lamb Meatballs', new List<String>(), new List<String>()),
-  ];
+  Database database;
+  List<Recipe> _recipeList;
+
+  @override
+  void initState() {
+    _initState();
+    super.initState();
+  }
+
+  Future<void> _initState() async {
+    var dbPath = await getDatabasesPath();
+    await Directory(dbPath).create(recursive: true);
+
+    database = await openDatabase(join(dbPath, 'meal_manager.db'));
+    _recipeList = await recipes();
+  }
+
+  Future<List<Recipe>> recipes() async {
+    List<Map<String, dynamic>> recipes;
+    try {
+      recipes = await database.query('recipes');
+    } on Exception catch (e) {
+      return new List<Recipe>();
+    }
+
+    return List.generate(recipes.length, (i) {
+      return Recipe(
+          recipes[i]['title'], recipes[i]['ingredients'], recipes[i]['steps']);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +67,12 @@ class RecipeListState extends State<RecipeList> {
   }
 
   Widget _buildRecipes() {
+    if (_recipeList == null || _recipeList.length == 0) {
+      return Center(
+        child: Text("No recipes found. Make some!"),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(8),
       itemCount: _recipeList.length * 2,
@@ -42,13 +82,13 @@ class RecipeListState extends State<RecipeList> {
             thickness: 2.0,
           );
         } else {
-          return _buildRecipeTile(_recipeList[i ~/ 2]);
+          return _buildRecipeTile(context, _recipeList[i ~/ 2]);
         }
       },
     );
   }
 
-  Widget _buildRecipeTile(Recipe recipe) {
+  Widget _buildRecipeTile(BuildContext context, Recipe recipe) {
     return ListTile(
         title: Center(child: Text(recipe.title)),
         onTap: () {
