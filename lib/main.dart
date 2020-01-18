@@ -22,26 +22,7 @@ class MealManagerState extends State<MealManager> {
         theme: ThemeData(
           primarySwatch: Colors.deepPurple,
         ),
-        home: Home());
-  }
-}
-
-class Home extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Meal Manager'),
-      ),
-      body: RecipeList(),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => RecipeFormHome()));
-        },
-      ),
-    );
+        home: RecipeList());
   }
 }
 
@@ -59,27 +40,59 @@ class RecipeListState extends State<RecipeList> {
     var dbPath = await getDatabasesPath();
     await Directory(dbPath).create(recursive: true);
 
-    database = await openDatabase(join(dbPath, 'meal_manager.db'));
+    database = await openDatabase(
+      join(dbPath, 'meal_manager.db'),
+      version: 1,
+      onCreate: (Database db, int version) async {
+        await db
+            .execute('CREATE TABLE Recipe(id INTEGER PRIMARY KEY, title TEXT)');
+      },
+    );
     _recipeList = await recipes();
   }
 
   Future<List<Recipe>> recipes() async {
     List<Map<String, dynamic>> recipes;
     try {
-      recipes = await database.query('recipes');
+      recipes = await database.query('Recipe');
     } on Exception catch (e) {
       return new List<Recipe>();
     }
 
     return List.generate(recipes.length, (i) {
-      return Recipe(
+      return Recipe.withData(
           recipes[i]['title'], recipes[i]['ingredients'], recipes[i]['steps']);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return _buildRecipes();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Meal Manager'),
+      ),
+      body: _buildRecipes(),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () async {
+          List<Recipe> list = await _navigateAndGetResult(context);
+          setState(() {
+            _recipeList = list;
+          });
+        },
+      ),
+    );
+  }
+
+  Future<List<Recipe>> _navigateAndGetResult(BuildContext context) async {
+    final result = await Navigator.push(
+        context, new MaterialPageRoute(builder: (context) => RecipeFormHome()));
+
+    if (result != null) {
+      return await recipes();
+    } else {
+      return _recipeList;
+    }
   }
 
   Widget _buildRecipes() {
@@ -149,7 +162,7 @@ class RecipeView extends StatelessWidget {
               style: TextStyle(fontSize: 24.0),
             ),
             ListView.builder(
-              itemCount: recipe.ingredients.length,
+              itemCount: recipe.ingredients?.length ?? 0,
               itemBuilder: (BuildContext context, int i) {
                 return _buildIngredient(recipe.ingredients[i]);
               },
@@ -161,7 +174,7 @@ class RecipeView extends StatelessWidget {
               style: TextStyle(fontSize: 24.0),
             ),
             ListView.builder(
-              itemCount: recipe.steps.length,
+              itemCount: recipe.steps?.length ?? 0,
               itemBuilder: (BuildContext context, int i) {
                 return _buildStep(recipe.steps[i], i);
               },

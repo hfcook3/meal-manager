@@ -1,4 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:mealmanager/recipe_model.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/sqlite_api.dart';
 import 'package:uuid/uuid.dart';
 
 class RecipeFormHome extends StatelessWidget {
@@ -24,15 +30,25 @@ class RecipeForm extends StatefulWidget {
 class RecipeFormState extends State<RecipeForm> {
   final _formKey = GlobalKey<FormState>();
   final _uuid = Uuid();
+  final titleController = new TextEditingController();
 
-  List<Widget> _ingredientFieldList = List<Widget>();
-  List<Widget> _stepFieldList = List<Widget>();
+  Database database;
+  List<Widget> _ingredientFieldList = new List<Widget>();
+  List<Widget> _stepFieldList = new List<Widget>();
+
+  Recipe _recipe = new Recipe();
 
   @override
   void initState() {
-    _ingredientFieldList = [_buildIngredientField(_uuid.v1())];
-    _stepFieldList = [_buildStepField(_uuid.v1())];
+    _initDb();
     super.initState();
+  }
+
+  Future<void> _initDb() async {
+    var dbPath = await getDatabasesPath();
+    await Directory(dbPath).create(recursive: true);
+
+    database = await openDatabase(join(dbPath, 'meal_manager.db'));
   }
 
   @override
@@ -46,8 +62,12 @@ class RecipeFormState extends State<RecipeForm> {
               style: TextStyle(fontSize: 20),
             ),
             TextFormField(
+              controller: titleController,
               decoration:
                   InputDecoration(hintText: 'Enter the recipe title here'),
+              onSaved: (String value) {
+                _recipe.title = value;
+              },
               validator: (value) {
                 if (value.isEmpty) {
                   return 'Please enter a title.';
@@ -70,8 +90,12 @@ class RecipeFormState extends State<RecipeForm> {
                     textColor: Colors.white,
                     onPressed: () {
                       setState(() {
-                        _ingredientFieldList
-                            .add(_buildIngredientField(_uuid.v1()));
+                        String key = _uuid.v1();
+                        _ingredientFieldList.add(_buildSubField(
+                            key,
+                            'Write a new ingredient',
+                            'Please enter an ingredient',
+                            'ingredients'));
                       });
                     },
                   )
@@ -96,7 +120,12 @@ class RecipeFormState extends State<RecipeForm> {
                     textColor: Colors.white,
                     onPressed: () {
                       setState(() {
-                        _stepFieldList.add(_buildStepField(_uuid.v1()));
+                        String key = _uuid.v1();
+                        _stepFieldList.add(_buildSubField(
+                            key,
+                            'Write the next step',
+                            'Please enter a step',
+                            'steps'));
                       });
                     },
                   )
@@ -106,32 +135,34 @@ class RecipeFormState extends State<RecipeForm> {
             Column(
               children: _stepFieldList,
             ),
-            RaisedButton(
-                color: Colors.deepPurple,
-                textColor: Colors.white,
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    Scaffold.of(context).showSnackBar(
-                        SnackBar(content: Text('Processing Data')));
-                  }
-                },
-                child: Text('Submit'))
+            Container(
+                padding: EdgeInsets.only(top: 20.0),
+                child: RaisedButton(
+                    color: Colors.deepPurple,
+                    textColor: Colors.white,
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        _formKey.currentState.save();
+                        _insertNewRecipe(context);
+                      }
+                    },
+                    child: Text('Submit')))
           ],
         ));
   }
 
-  Widget _buildIngredientField(String key) {
+  Widget _buildSubField(
+      String key, String hint, String validationText, String fieldList) {
     return Row(
       key: Key(key),
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Expanded(
           child: TextFormField(
-            decoration: InputDecoration(
-                hintText: 'Enter an ingredient for your recipe'),
+            decoration: InputDecoration(hintText: hint),
             validator: (value) {
               if (value.isEmpty) {
-                return 'Please enter an ingredient.';
+                return validationText;
               }
               return null;
             },
@@ -143,7 +174,12 @@ class RecipeFormState extends State<RecipeForm> {
           textColor: Colors.white,
           onPressed: () {
             setState(() {
-              _ingredientFieldList.removeWhere((form) => form.key == Key(key));
+              if (fieldList == "ingredients") {
+                _ingredientFieldList
+                    .removeWhere((form) => form.key == Key(key));
+              } else {
+                _stepFieldList.removeWhere((form) => form.key == Key(key));
+              }
             });
           },
         )
@@ -151,34 +187,9 @@ class RecipeFormState extends State<RecipeForm> {
     );
   }
 
-  Widget _buildStepField(String key) {
-    return Row(
-      key: Key(key),
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Expanded(
-          child: TextFormField(
-            decoration:
-                InputDecoration(hintText: 'Enter the next step in your recipe'),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Please enter a step.';
-              }
-              return null;
-            },
-          ),
-        ),
-        RaisedButton(
-          child: Icon(Icons.remove),
-          color: Colors.red,
-          textColor: Colors.white,
-          onPressed: () {
-            setState(() {
-              _ingredientFieldList.removeWhere((form) => form.key == Key(key));
-            });
-          },
-        )
-      ],
-    );
+  _insertNewRecipe(BuildContext context) async {
+    int id = await database
+        .rawInsert('INSERT INTO Recipe(title) VALUES (?)', [_recipe.title]);
+    Navigator.pop(context, id);
   }
 }

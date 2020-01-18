@@ -1,7 +1,8 @@
 class Recipe {
-  final String title;
-  final List<String> ingredients;
-  final List<String> steps;
+  String title;
+  List<String> ingredients;
+  List<String> steps;
 
-  Recipe(this.title, this.ingredients, this.steps);
+  Recipe();
+  Recipe.withData(this.title, this.ingredients, this.steps);
 }
