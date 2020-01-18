@@ -11,6 +11,7 @@ dependencies:
 
   sqflite: ^1.2.0
   path: ^1.6.4
+  uuid: ^2.0.4
 
   cupertino_icons: ^0.1.2
 
