@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -44,24 +45,31 @@ class RecipeListState extends State<RecipeList> {
       join(dbPath, 'meal_manager.db'),
       version: 1,
       onCreate: (Database db, int version) async {
-        await db
-            .execute('CREATE TABLE Recipe(id INTEGER PRIMARY KEY, title TEXT)');
+        await db.execute(
+            'CREATE TABLE Recipes(id INTEGER PRIMARY KEY, title TEXT)');
+        await db.execute(
+            'CREATE TABLE Ingredients(id INTEGER PRIMARY KEY, recipeKey INTEGER, ingredient TEXT, ' +
+                'CONSTRAINT fk_recipes FOREIGN KEY (recipeKey) REFERENCES Recipes(id))');
+        await db.execute(
+            'CREATE TABLE Steps(id INTEGER PRIMARY KEY, recipeKey INTEGER, step TEXT, ' +
+                'CONSTRAINT fk_recipes FOREIGN KEY (recipeKey) REFERENCES Recipes(id))');
       },
     );
     _recipeList = await recipes();
+    setState(() {});
   }
 
   Future<List<Recipe>> recipes() async {
     List<Map<String, dynamic>> recipes;
     try {
-      recipes = await database.query('Recipe');
+      recipes = await database.rawQuery('SELECT id, title FROM Recipes');
     } on Exception catch (e) {
+      debugPrint('An error occurred when retrieving recipes from DB: $e');
       return new List<Recipe>();
     }
 
     return List.generate(recipes.length, (i) {
-      return Recipe.withData(
-          recipes[i]['title'], recipes[i]['ingredients'], recipes[i]['steps']);
+      return Recipe.withTitle(recipes[i]['id'], recipes[i]['title']);
     });
   }
 
@@ -120,14 +128,57 @@ class RecipeListState extends State<RecipeList> {
   Widget _buildRecipeTile(BuildContext context, Recipe recipe) {
     return ListTile(
         title: Center(child: Text(recipe.title)),
-        onTap: () {
+        trailing: PopupMenuButton<String>(
+            onSelected: (String result) {
+              switch (result) {
+                case 'Delete':
+                  {
+                    _deleteRecipe(recipe);
+                  }
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext buildContext) =>
+                <PopupMenuEntry<String>>[
+                  const PopupMenuItem(value: 'Delete', child: Text('Delete'))
+                ]),
+        onTap: () async {
+          var fullRecipe = await _getFullRecipe(recipe);
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => RecipeView(
-                        recipe: recipe,
+                        recipe: fullRecipe,
                       )));
         });
+  }
+
+  Future<void> _deleteRecipe(Recipe recipe) async {
+    await database.rawDelete('DELETE FROM Recipes WHERE id = ?', [recipe.id]);
+    await database
+        .rawDelete('DELETE FROM Ingredients WHERE id = ?', [recipe.id]);
+    await database.rawDelete('DELETE FROM Steps WHERE id = ?', [recipe.id]);
+
+    var updatedRecipes = await recipes();
+    setState(() {
+      _recipeList = updatedRecipes;
+    });
+  }
+
+  Future<Recipe> _getFullRecipe(Recipe recipe) async {
+    var ingredientsData = await database
+        .rawQuery('SELECT * FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
+    var ingredients = List.generate(ingredientsData.length, (i) {
+      return ingredientsData[i]['ingredient'].toString();
+    });
+
+    var stepsData = await database
+        .rawQuery('SELECT * FROM Steps WHERE recipeKey = ?', [recipe.id]);
+    var steps = List.generate(stepsData.length, (i) {
+      return stepsData[i]['step'].toString();
+    });
+
+    return Recipe.withData(recipe.title, ingredients, steps);
   }
 }
 

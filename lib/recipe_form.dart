@@ -30,7 +30,6 @@ class RecipeForm extends StatefulWidget {
 class RecipeFormState extends State<RecipeForm> {
   final _formKey = GlobalKey<FormState>();
   final _uuid = Uuid();
-  final titleController = new TextEditingController();
 
   Database database;
   List<Widget> _ingredientFieldList = new List<Widget>();
@@ -41,6 +40,10 @@ class RecipeFormState extends State<RecipeForm> {
   @override
   void initState() {
     _initDb();
+
+    _recipe.ingredients = new List<String>();
+    _recipe.steps = new List<String>();
+
     super.initState();
   }
 
@@ -62,7 +65,6 @@ class RecipeFormState extends State<RecipeForm> {
               style: TextStyle(fontSize: 20),
             ),
             TextFormField(
-              controller: titleController,
               decoration:
                   InputDecoration(hintText: 'Enter the recipe title here'),
               onSaved: (String value) {
@@ -160,6 +162,13 @@ class RecipeFormState extends State<RecipeForm> {
         Expanded(
           child: TextFormField(
             decoration: InputDecoration(hintText: hint),
+            onSaved: ((String value) {
+              if (fieldList == "ingredients") {
+                _recipe.ingredients.add(value);
+              } else {
+                _recipe.steps.add(value);
+              }
+            }),
             validator: (value) {
               if (value.isEmpty) {
                 return validationText;
@@ -189,7 +198,19 @@ class RecipeFormState extends State<RecipeForm> {
 
   _insertNewRecipe(BuildContext context) async {
     int id = await database
-        .rawInsert('INSERT INTO Recipe(title) VALUES (?)', [_recipe.title]);
+        .rawInsert('INSERT INTO Recipes(title) VALUES (?)', [_recipe.title]);
+
+    // Could async these two insertions
+    for (int i = 0; i < _recipe.ingredients.length; i++) {
+      await database.rawInsert(
+          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
+          [id, _recipe.ingredients[i]]);
+    }
+    for (int i = 0; i < _recipe.steps.length; i++) {
+      await database.rawInsert(
+          'INSERT INTO Steps(recipeKey, step) VALUES (?, ?)',
+          [id, _recipe.steps[i]]);
+    }
     Navigator.pop(context, id);
   }
 }
