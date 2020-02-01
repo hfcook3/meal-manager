@@ -94,7 +94,9 @@ class RecipeListState extends State<RecipeList> {
 
   Future<List<Recipe>> _navigateAndGetResult(BuildContext context) async {
     final result = await Navigator.push(
-        context, new MaterialPageRoute(builder: (context) => RecipeFormHome()));
+        context,
+        new MaterialPageRoute(
+            builder: (context) => RecipeFormHome(new Recipe())));
 
     if (result != null) {
       return await recipes();
@@ -129,18 +131,28 @@ class RecipeListState extends State<RecipeList> {
     return ListTile(
         title: Center(child: Text(recipe.title)),
         trailing: PopupMenuButton<String>(
-            onSelected: (String result) {
+            onSelected: (String result) async {
               switch (result) {
                 case 'Delete':
                   {
                     _deleteRecipe(recipe);
                   }
                   break;
+                case 'Edit':
+                  {
+                    var fullRecipe = await _getFullRecipe(recipe);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => RecipeFormHome(fullRecipe)));
+                  }
+                  break;
               }
             },
             itemBuilder: (BuildContext buildContext) =>
                 <PopupMenuEntry<String>>[
-                  const PopupMenuItem(value: 'Delete', child: Text('Delete'))
+                  const PopupMenuItem(value: 'Delete', child: Text('Delete')),
+                  const PopupMenuItem(value: 'Edit', child: Text('Edit'))
                 ]),
         onTap: () async {
           var fullRecipe = await _getFullRecipe(recipe);
@@ -178,7 +190,7 @@ class RecipeListState extends State<RecipeList> {
       return stepsData[i]['step'].toString();
     });
 
-    return Recipe.withData(recipe.title, ingredients, steps);
+    return Recipe.withData(recipe.id, recipe.title, ingredients, steps);
   }
 }
 
@@ -198,41 +210,50 @@ class RecipeView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Meal Manager'),
       ),
-      body: Container(
-          padding: EdgeInsets.all(12.0),
-          child: Column(children: [
-            Text(
-              recipe.title,
-              style: TextStyle(fontSize: 32.0),
-            ),
-            Divider(
-              thickness: 2.0,
-            ),
-            Text(
-              'Ingredients',
-              style: TextStyle(fontSize: 24.0),
-            ),
-            ListView.builder(
-              itemCount: recipe.ingredients?.length ?? 0,
-              itemBuilder: (BuildContext context, int i) {
-                return _buildIngredient(recipe.ingredients[i]);
-              },
-              padding: const EdgeInsets.all(8),
-              shrinkWrap: true,
-            ),
-            Text(
-              'Steps',
-              style: TextStyle(fontSize: 24.0),
-            ),
-            ListView.builder(
-              itemCount: recipe.steps?.length ?? 0,
-              itemBuilder: (BuildContext context, int i) {
-                return _buildStep(recipe.steps[i], i);
-              },
-              padding: const EdgeInsets.all(8),
-              shrinkWrap: true,
-            )
-          ])),
+      body: ListView(padding: EdgeInsets.all(12.0), children: [
+        Text(
+          recipe.title,
+          style: TextStyle(fontSize: 40.0),
+          textAlign: TextAlign.left,
+        ),
+        Divider(
+          thickness: 2.0,
+        ),
+        Text(
+          'Ingredients',
+          style: TextStyle(fontSize: 32.0),
+          textAlign: TextAlign.left,
+        ),
+        Column(
+          children: List.generate(recipe.ingredients.length, (i) {
+            return Row(children: <Widget>[
+              Icon(Icons.arrow_right),
+              Text(
+                recipe.ingredients[i],
+                style: TextStyle(fontSize: 20.0),
+              )
+            ]);
+          }),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          'Steps',
+          style: TextStyle(fontSize: 32.0),
+          textAlign: TextAlign.left,
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(recipe.steps.length, (i) {
+            return Text(
+              "${i + 1}.  ${recipe.steps[i]}",
+              textAlign: TextAlign.left,
+              style: TextStyle(fontSize: 20.0),
+            );
+          }),
+        ),
+      ]),
     );
   }
 
