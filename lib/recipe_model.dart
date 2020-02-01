@@ -6,5 +6,5 @@ class Recipe {
 
   Recipe();
   Recipe.withTitle(this.id, this.title);
-  Recipe.withData(this.title, this.ingredients, this.steps);
+  Recipe.withData(this.id, this.title, this.ingredients, this.steps);
 }
