@@ -1,16 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:mealmanager/recipe_model.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
+import 'package:mealmanager/repositories/recipe_sql_client.dart';
 import 'package:uuid/uuid.dart';
 
 class RecipeFormHome extends StatelessWidget {
   final Recipe recipeToEdit;
+  final RecipeSqlClient _recipeSqlClient;
 
-  RecipeFormHome(this.recipeToEdit);
+  RecipeFormHome(this.recipeToEdit, this._recipeSqlClient);
 
   @override
   Widget build(BuildContext context) {
@@ -20,19 +17,21 @@ class RecipeFormHome extends StatelessWidget {
         leading: BackButton(),
       ),
       body: Container(
-          padding: EdgeInsets.all(18.0), child: RecipeForm(recipeToEdit)),
+          padding: EdgeInsets.all(18.0),
+          child: RecipeForm(recipeToEdit, _recipeSqlClient)),
     );
   }
 }
 
 class RecipeForm extends StatefulWidget {
   final Recipe recipe;
+  final RecipeSqlClient _recipeSqlClient;
 
-  RecipeForm(this.recipe);
+  RecipeForm(this.recipe, this._recipeSqlClient);
 
   @override
   RecipeFormState createState() {
-    return RecipeFormState(recipe);
+    return RecipeFormState(recipe, _recipeSqlClient);
   }
 }
 
@@ -48,18 +47,16 @@ class RecipeFormState extends State<RecipeForm> {
   final stepsValidationText = 'Please enter a step';
   final stepsListName = 'steps';
 
-  Database database;
+  RecipeSqlClient _recipeSqlClient;
   List<Widget> _ingredientFieldList = new List<Widget>();
   List<Widget> _stepFieldList = new List<Widget>();
 
   Recipe _recipe;
 
-  RecipeFormState(this._recipe);
+  RecipeFormState(this._recipe, this._recipeSqlClient);
 
   @override
   void initState() {
-    _initDb();
-
     if (_recipe.ingredients == null) {
       _recipe.ingredients = new List<String>();
     } else {
@@ -83,13 +80,6 @@ class RecipeFormState extends State<RecipeForm> {
     }
 
     super.initState();
-  }
-
-  Future<void> _initDb() async {
-    var dbPath = await getDatabasesPath();
-    await Directory(dbPath).create(recursive: true);
-
-    database = await openDatabase(join(dbPath, 'meal_manager.db'));
   }
 
   @override
@@ -240,43 +230,12 @@ class RecipeFormState extends State<RecipeForm> {
   }
 
   _insertNewRecipe(BuildContext context) async {
-    int id = await database
-        .rawInsert('INSERT INTO Recipes(title) VALUES (?)', [_recipe.title]);
-
-    // Could async these two insertions
-    for (int i = 0; i < _recipe.ingredients.length; i++) {
-      await database.rawInsert(
-          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
-          [id, _recipe.ingredients[i]]);
-    }
-    for (int i = 0; i < _recipe.steps.length; i++) {
-      await database.rawInsert(
-          'INSERT INTO Steps(recipeKey, step) VALUES (?, ?)',
-          [id, _recipe.steps[i]]);
-    }
+    int id = await _recipeSqlClient.insertRecipe(_recipe);
     Navigator.pop(context, id);
   }
 
   _updateRecipe(BuildContext context) async {
-    await database.rawUpdate('UPDATE Recipes SET title = ? WHERE id = ?',
-        [_recipe.title, _recipe.id]);
-
-    await database
-        .rawDelete('DELETE FROM Ingredients WHERE recipeKey = ?', [_recipe.id]);
-
-    await database
-        .rawDelete('DELETE FROM Steps WHERE recipeKey = ?', [_recipe.id]);
-
-    for (int i = 0; i < _recipe.ingredients.length; i++) {
-      await database.rawInsert(
-          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
-          [_recipe.id, _recipe.ingredients[i]]);
-    }
-    for (int i = 0; i < _recipe.steps.length; i++) {
-      await database.rawInsert(
-          'INSERT INTO Steps(recipeKey, step) VALUES (?, ?)',
-          [_recipe.id, _recipe.steps[i]]);
-    }
+    _recipeSqlClient.updateRecipe(_recipe);
     Navigator.pop(context, _recipe.id);
   }
 }

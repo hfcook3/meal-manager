@@ -72,7 +72,8 @@ class RecipeListState extends State<RecipeList> {
     final result = await Navigator.push(
         context,
         new MaterialPageRoute(
-            builder: (context) => RecipeFormHome(new Recipe())));
+            builder: (context) =>
+                RecipeFormHome(new Recipe(), _recipeSqlClient)));
 
     if (result != null) {
       return await _recipeSqlClient.getRecipes();
@@ -126,7 +127,8 @@ class RecipeListState extends State<RecipeList> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => RecipeFormHome(fullRecipe)));
+                            builder: (context) =>
+                                RecipeFormHome(fullRecipe, _recipeSqlClient)));
                   }
                   break;
               }

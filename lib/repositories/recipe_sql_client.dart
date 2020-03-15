@@ -65,4 +65,45 @@ class RecipeSqlClient {
 
     return Recipe.withData(recipe.id, recipe.title, ingredients, steps);
   }
+
+  Future<int> insertRecipe(Recipe recipe) async {
+    int id = await _database
+        .rawInsert('INSERT INTO Recipes(title) VALUES (?)', [recipe.title]);
+
+    // Could async these two insertions
+    for (int i = 0; i < recipe.ingredients.length; i++) {
+      await _database.rawInsert(
+          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
+          [id, recipe.ingredients[i]]);
+    }
+    for (int i = 0; i < recipe.steps.length; i++) {
+      await _database.rawInsert(
+          'INSERT INTO Steps(recipeKey, step) VALUES (?, ?)',
+          [id, recipe.steps[i]]);
+    }
+
+    return id;
+  }
+
+  Future<void> updateRecipe(Recipe recipe) async {
+    await _database.rawUpdate(
+        'UPDATE Recipes SET title = ? WHERE id = ?', [recipe.title, recipe.id]);
+
+    await _database
+        .rawDelete('DELETE FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
+
+    await _database
+        .rawDelete('DELETE FROM Steps WHERE recipeKey = ?', [recipe.id]);
+
+    for (int i = 0; i < recipe.ingredients.length; i++) {
+      await _database.rawInsert(
+          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
+          [recipe.id, recipe.ingredients[i]]);
+    }
+    for (int i = 0; i < recipe.steps.length; i++) {
+      await _database.rawInsert(
+          'INSERT INTO Steps(recipeKey, step) VALUES (?, ?)',
+          [recipe.id, recipe.steps[i]]);
+    }
+  }
 }
