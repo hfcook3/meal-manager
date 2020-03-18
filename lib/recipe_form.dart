@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mealmanager/recipe_model.dart';
-import 'package:mealmanager/repositories/recipe_sql_client.dart';
 import 'package:uuid/uuid.dart';
+
+import 'package:mealmanager/models/recipe_model.dart';
+import 'package:mealmanager/repositories/recipe_sql_client.dart';
 
 class RecipeFormHome extends StatelessWidget {
   final Recipe recipeToEdit;

@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/widgets.dart';
 
-import '../recipe_model.dart';
+import 'package:mealmanager/models/recipe_model.dart';
 
 class RecipeSqlClient {
   Database _database;
