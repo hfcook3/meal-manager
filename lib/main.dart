@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mealmanager/recipe_form.dart';
 import 'package:mealmanager/repositories/recipe_sql_client.dart';
 
-import 'recipe_model.dart';
+import 'package:mealmanager/models/recipe_model.dart';
 
 void main() => runApp(MealManager());
 
@@ -23,7 +23,7 @@ class MealManagerState extends State<MealManager> {
   }
 }
 
-class RecipeListState extends State<RecipeList> {
+class RecipeListViewState extends State<RecipeList> {
   RecipeSqlClient _recipeSqlClient;
   List<Recipe> _recipeList;
 
@@ -152,7 +152,7 @@ class RecipeListState extends State<RecipeList> {
 
 class RecipeList extends StatefulWidget {
   @override
-  RecipeListState createState() => RecipeListState();
+  RecipeListViewState createState() => RecipeListViewState();
 }
 
 class RecipeView extends StatelessWidget {
