@@ -13,6 +13,7 @@ void main() {
   final RecipeRepository recipeRepository =
       RecipeRepository(recipeSqlClient: new RecipeSqlClient());
 
+  WidgetsFlutterBinding.ensureInitialized();
   recipeRepository.recipeSqlClient.initDb();
 
   runApp(BlocProvider<RecipeListBloc>(

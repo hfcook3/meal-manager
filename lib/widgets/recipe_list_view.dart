@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:mealmanager/blocs/recipe_list_bloc.dart';
 import 'package:mealmanager/models/recipe_model.dart';
-import 'package:mealmanager/repositories/recipe_sql_client.dart';
 import 'package:mealmanager/widgets/widgets.dart';
+import 'package:mealmanager/blocs/blocs.dart';
 
 class RecipeListViewState extends State<RecipeListView> {
-  RecipeSqlClient _recipeSqlClient;
   List<Recipe> _recipeList;
 
   @override
@@ -15,10 +17,7 @@ class RecipeListViewState extends State<RecipeListView> {
   }
 
   Future<void> _initState() async {
-    _recipeSqlClient = new RecipeSqlClient();
-    await _recipeSqlClient.initDb();
-    _recipeList = await _recipeSqlClient.getRecipes();
-    setState(() {});
+    BlocProvider.of<RecipeListBloc>(context).add(GetRecipeListEvent());
   }
 
   @override
@@ -36,34 +35,43 @@ class RecipeListViewState extends State<RecipeListView> {
           )
         ],
       ),
-      body: _buildRecipes(),
+      body: BlocBuilder<RecipeListBloc, RecipeListState>(
+          builder: (context, state) {
+        if (state is RecipeListEmpty) {
+          return Center(child: Text('No recipes found. Try adding some!'));
+        }
+        if (state is RecipeListLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (state is RecipeListLoaded) {
+          return _buildRecipes(state.recipeList);
+        }
+        if (state is RecipeListError) {
+          return Center(
+              child: Text('Something went wrong!',
+                  style: TextStyle(color: Colors.red)));
+        }
+        return Center(
+            child: Text('Bad state.', style: TextStyle(color: Colors.red)));
+      }),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          List<Recipe> list = await _navigateAndGetResult(context);
-          setState(() {
-            _recipeList = list;
-          });
+          await _navigateAndGetResult(context);
+          BlocProvider.of<RecipeListBloc>(context).add(GetRecipeListEvent());
         },
       ),
     );
   }
 
-  Future<List<Recipe>> _navigateAndGetResult(BuildContext context) async {
-    final result = await Navigator.push(
+  Future<void> _navigateAndGetResult(BuildContext context) async {
+    await Navigator.push(
         context,
         new MaterialPageRoute(
-            builder: (context) =>
-                RecipeFormHome(new Recipe(), _recipeSqlClient)));
-
-    if (result != null) {
-      return await _recipeSqlClient.getRecipes();
-    } else {
-      return _recipeList;
-    }
+            builder: (context) => RecipeFormHome(new Recipe())));
   }
 
-  Widget _buildRecipes() {
+  Widget _buildRecipes(List<Recipe> recipeList) {
     if (_recipeList == null || _recipeList.length == 0) {
       return Center(
         child: Text("No recipes found. Make some!"),
@@ -93,23 +101,16 @@ class RecipeListViewState extends State<RecipeListView> {
               switch (result) {
                 case 'Delete':
                   {
-                    _recipeSqlClient.deleteRecipe(recipe);
-
-                    var updatedRecipes = await _recipeSqlClient.getRecipes();
-                    setState(() {
-                      _recipeList = updatedRecipes;
-                    });
+                    BlocProvider.of<RecipeListBloc>(context)
+                        .add(DeleteRecipeEvent(recipe: recipe));
                   }
                   break;
                 case 'Edit':
                   {
-                    var fullRecipe =
-                        await _recipeSqlClient.getFullRecipe(recipe);
-                    Navigator.push(
+                    await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                RecipeFormHome(fullRecipe, _recipeSqlClient)));
+                            builder: (context) => RecipeFormHome(recipe)));
                   }
                   break;
               }
@@ -120,12 +121,11 @@ class RecipeListViewState extends State<RecipeListView> {
                   const PopupMenuItem(value: 'Edit', child: Text('Edit'))
                 ]),
         onTap: () async {
-          var fullRecipe = await _recipeSqlClient.getFullRecipe(recipe);
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => RecipeView(
-                        recipe: fullRecipe,
+                        recipe: recipe,
                       )));
         });
   }
