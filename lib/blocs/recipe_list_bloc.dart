@@ -17,19 +17,19 @@ class RecipeListBloc extends Bloc<RecipeListEvent, RecipeListState> {
   @override
   Stream<RecipeListState> mapEventToState(RecipeListEvent event) async* {
     if (event is GetRecipeListEvent) {
-      _mapGetRecipeListEvent(event);
+      yield* _mapGetRecipeListEvent(event);
     }
 
     if (event is AddRecipeEvent) {
-      _mapAddRecipeEvent(event);
+      yield* _mapAddRecipeEvent(event);
     }
 
     if (event is EditRecipeEvent) {
-      _mapEditRecipeEvent(event);
+      yield* _mapEditRecipeEvent(event);
     }
 
     if (event is DeleteRecipeEvent) {
-      _mapDeleteRecipeEvent(event);
+      yield* _mapDeleteRecipeEvent(event);
     }
   }
 

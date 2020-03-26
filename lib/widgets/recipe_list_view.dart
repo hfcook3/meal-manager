@@ -8,8 +8,6 @@ import 'package:mealmanager/widgets/widgets.dart';
 import 'package:mealmanager/blocs/blocs.dart';
 
 class RecipeListViewState extends State<RecipeListView> {
-  List<Recipe> _recipeList;
-
   @override
   void initState() {
     _initState();
@@ -72,7 +70,7 @@ class RecipeListViewState extends State<RecipeListView> {
   }
 
   Widget _buildRecipes(List<Recipe> recipeList) {
-    if (_recipeList == null || _recipeList.length == 0) {
+    if (recipeList == null || recipeList.length == 0) {
       return Center(
         child: Text("No recipes found. Make some!"),
       );
@@ -80,14 +78,14 @@ class RecipeListViewState extends State<RecipeListView> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: _recipeList.length * 2,
+      itemCount: recipeList.length * 2,
       itemBuilder: (BuildContext context, int i) {
         if (i.isOdd) {
           return Divider(
             thickness: 2.0,
           );
         } else {
-          return _buildRecipeTile(context, _recipeList[i ~/ 2]);
+          return _buildRecipeTile(context, recipeList[i ~/ 2]);
         }
       },
     );

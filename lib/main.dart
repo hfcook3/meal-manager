@@ -7,14 +7,14 @@ import 'SimpleBlocDelegate.dart';
 import 'repositories/recipe_sql_client.dart';
 import 'widgets/meal_manager.dart';
 
-void main() {
+void main() async {
   BlocSupervisor.delegate = SimpleBlocDelegate();
 
   final RecipeRepository recipeRepository =
       RecipeRepository(recipeSqlClient: new RecipeSqlClient());
 
   WidgetsFlutterBinding.ensureInitialized();
-  recipeRepository.recipeSqlClient.initDb();
+  await recipeRepository.recipeSqlClient.initDb();
 
   runApp(BlocProvider<RecipeListBloc>(
       create: (context) => RecipeListBloc(recipeRepository: recipeRepository),
