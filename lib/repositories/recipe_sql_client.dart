@@ -42,14 +42,6 @@ class RecipeSqlClient {
     });
   }
 
-  Future<void> deleteRecipe(Recipe recipe) async {
-    await _database.rawDelete('DELETE FROM Recipes WHERE id = ?', [recipe.id]);
-    await _database
-        .rawDelete('DELETE FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
-    await _database
-        .rawDelete('DELETE FROM Steps WHERE recipeKey = ?', [recipe.id]);
-  }
-
   Future<Recipe> getFullRecipe(Recipe recipe) async {
     var ingredientsData = await _database
         .rawQuery('SELECT * FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
@@ -64,6 +56,14 @@ class RecipeSqlClient {
     });
 
     return Recipe.withData(recipe.id, recipe.title, ingredients, steps);
+  }
+
+  Future<void> deleteRecipe(Recipe recipe) async {
+    await _database.rawDelete('DELETE FROM Recipes WHERE id = ?', [recipe.id]);
+    await _database
+        .rawDelete('DELETE FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
+    await _database
+        .rawDelete('DELETE FROM Steps WHERE recipeKey = ?', [recipe.id]);
   }
 
   Future<int> insertRecipe(Recipe recipe) async {

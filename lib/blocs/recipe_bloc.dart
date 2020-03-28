@@ -16,7 +16,7 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
   @override
   Stream<RecipeState> mapEventToState(RecipeEvent event) async* {
     if (event is GetFullRecipeEvent) {
-      _mapGetFullRecipeEvent(event);
+      yield* _mapGetFullRecipeEvent(event);
     }
   }
 

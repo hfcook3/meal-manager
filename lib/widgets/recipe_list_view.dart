@@ -119,12 +119,11 @@ class RecipeListViewState extends State<RecipeListView> {
                   const PopupMenuItem(value: 'Edit', child: Text('Edit'))
                 ]),
         onTap: () async {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => RecipeView(
-                        recipe: recipe,
-                      )));
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            BlocProvider.of<RecipeBloc>(context)
+                .add(GetFullRecipeEvent(recipe: recipe));
+            return RecipeView();
+          }));
         });
   }
 }

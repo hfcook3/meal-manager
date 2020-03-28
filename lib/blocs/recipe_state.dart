@@ -10,8 +10,6 @@ abstract class RecipeState extends Equatable {
   List<Object> get props => [];
 }
 
-class RecipeEmpty extends RecipeState {}
-
 class RecipeLoading extends RecipeState {}
 
 class RecipeLoaded extends RecipeState {
