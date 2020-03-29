@@ -64,9 +64,7 @@ class RecipeListViewState extends State<RecipeListView> {
 
   Future<void> _navigateAndGetResult(BuildContext context) async {
     await Navigator.push(
-        context,
-        new MaterialPageRoute(
-            builder: (context) => RecipeFormHome(new Recipe())));
+        context, new MaterialPageRoute(builder: (context) => RecipeForm()));
   }
 
   Widget _buildRecipes(List<Recipe> recipeList) {
@@ -105,10 +103,10 @@ class RecipeListViewState extends State<RecipeListView> {
                   break;
                 case 'Edit':
                   {
-                    await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => RecipeFormHome(recipe)));
+                    BlocProvider.of<RecipeBloc>(context)
+                        .add(GetFullRecipeEvent(recipe: recipe));
+                    await Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => RecipeForm()));
                   }
                   break;
               }

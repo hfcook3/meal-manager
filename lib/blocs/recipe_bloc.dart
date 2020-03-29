@@ -18,6 +18,18 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
     if (event is GetFullRecipeEvent) {
       yield* _mapGetFullRecipeEvent(event);
     }
+    if (event is AddIngredientEvent) {
+      yield* _mapAddIngredientEvent(event);
+    }
+    if (event is RemoveIngredientEvent) {
+      yield* _mapRemoveIngredientEvent(event);
+    }
+    if (event is AddStepEvent) {
+      yield* _mapAddStepEvent(event);
+    }
+    if (event is RemoveStepEvent) {
+      yield* _mapRemoveStepEvent(event);
+    }
   }
 
   Stream<RecipeState> _mapGetFullRecipeEvent(GetFullRecipeEvent event) async* {
@@ -26,6 +38,55 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
     try {
       final fullRecipe = await recipeRepository.getFullRecipe(event.recipe);
       yield RecipeLoaded(recipe: fullRecipe);
+    } catch (_) {
+      yield RecipeError();
+    }
+  }
+
+  Stream<RecipeState> _mapAddIngredientEvent(AddIngredientEvent event) async* {
+    yield RecipeLoading();
+
+    try {
+      var recipe = event.recipe;
+      recipe.ingredients.add(event.ingredient);
+      yield RecipeLoaded(recipe: recipe);
+    } catch (_) {
+      yield RecipeError();
+    }
+  }
+
+  Stream<RecipeState> _mapRemoveIngredientEvent(
+      RemoveIngredientEvent event) async* {
+    yield RecipeLoading();
+
+    try {
+      var recipe = event.recipe;
+      recipe.ingredients.removeAt(event.ingredientIndex);
+      yield RecipeLoaded(recipe: recipe);
+    } catch (_) {
+      yield RecipeError();
+    }
+  }
+
+  Stream<RecipeState> _mapAddStepEvent(AddStepEvent event) async* {
+    yield RecipeLoading();
+
+    try {
+      var recipe = event.recipe;
+      recipe.steps.add(event.step);
+      yield RecipeLoaded(recipe: recipe);
+    } catch (_) {
+      yield RecipeError();
+    }
+  }
+
+  Stream<RecipeState> _mapRemoveStepEvent(RemoveStepEvent event) async* {
+    yield RecipeLoading();
+
+    try {
+      var recipe = event.recipe;
+      recipe.steps.removeAt(event.stepIndex);
+      yield RecipeLoaded(recipe: recipe);
     } catch (_) {
       yield RecipeError();
     }

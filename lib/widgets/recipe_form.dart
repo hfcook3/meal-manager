@@ -1,38 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:mealmanager/models/recipe_model.dart';
-import 'package:mealmanager/repositories/recipe_sql_client.dart';
-
-class RecipeFormHome extends StatelessWidget {
-  final Recipe recipeToEdit;
-  final RecipeSqlClient _recipeSqlClient;
-
-  RecipeFormHome(this.recipeToEdit, this._recipeSqlClient);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('New Recipe'),
-        leading: BackButton(),
-      ),
-      body: Container(
-          padding: EdgeInsets.all(18.0),
-          child: RecipeForm(recipeToEdit, _recipeSqlClient)),
-    );
-  }
-}
+import 'package:mealmanager/blocs/blocs.dart';
 
 class RecipeForm extends StatefulWidget {
-  final Recipe recipe;
-  final RecipeSqlClient _recipeSqlClient;
-
-  RecipeForm(this.recipe, this._recipeSqlClient);
-
   @override
   RecipeFormState createState() {
-    return RecipeFormState(recipe, _recipeSqlClient);
+    return RecipeFormState();
   }
 }
 
@@ -48,43 +24,41 @@ class RecipeFormState extends State<RecipeForm> {
   final stepsValidationText = 'Please enter a step';
   final stepsListName = 'steps';
 
-  RecipeSqlClient _recipeSqlClient;
-  List<Widget> _ingredientFieldList = new List<Widget>();
-  List<Widget> _stepFieldList = new List<Widget>();
-
-  Recipe _recipe;
-
-  RecipeFormState(this._recipe, this._recipeSqlClient);
-
-  @override
-  void initState() {
-    if (_recipe.ingredients == null) {
-      _recipe.ingredients = new List<String>();
-    } else {
-      _ingredientFieldList = List.generate(_recipe.ingredients.length, (i) {
-        return _buildSubField(_uuid.v1(), ingredientsHint,
-            ingredientsValidationText, ingredientsListName,
-            initialValue: _recipe.ingredients[i]);
-      });
-      _recipe.ingredients = new List<String>();
-    }
-
-    if (_recipe.steps == null) {
-      _recipe.steps = new List<String>();
-    } else {
-      _stepFieldList = List.generate(_recipe.steps.length, (i) {
-        return _buildSubField(
-            _uuid.v1(), stepsHint, stepsValidationText, stepsListName,
-            initialValue: _recipe.steps[i]);
-      });
-      _recipe.steps = new List<String>();
-    }
-
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Recipe form'),
+          leading: BackButton(),
+        ),
+        body: BlocBuilder<RecipeBloc, RecipeState>(builder: (context, state) {
+          if (state is RecipeLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (state is RecipeLoaded) {
+            return _buildForm(state.recipe);
+          }
+          if (state is RecipeError) {
+            return Center(
+                child: Text('Something went wrong!',
+                    style: TextStyle(color: Colors.red)));
+          }
+        }));
+  }
+
+  Widget _buildForm(Recipe recipe) {
+    var ingredientFieldList = List.generate(recipe.ingredients.length, (i) {
+      return _buildSubField(_uuid.v1(), i, recipe, ingredientsHint,
+          ingredientsValidationText, ingredientsListName,
+          initialValue: recipe.ingredients[i]);
+    });
+
+    var stepFieldList = List.generate(recipe.steps.length, (i) {
+      return _buildSubField(
+          _uuid.v1(), i, recipe, stepsHint, stepsValidationText, stepsListName,
+          initialValue: recipe.steps[i]);
+    });
+
     return Form(
         key: _formKey,
         child: ListView(
@@ -94,11 +68,11 @@ class RecipeFormState extends State<RecipeForm> {
               style: TextStyle(fontSize: 20),
             ),
             TextFormField(
-              initialValue: _recipe.title,
+              initialValue: recipe.title,
               decoration:
                   InputDecoration(hintText: 'Enter the recipe title here'),
               onSaved: (String value) {
-                _recipe.title = value;
+                recipe.title = value;
               },
               validator: (value) {
                 if (value.isEmpty) {
@@ -121,21 +95,15 @@ class RecipeFormState extends State<RecipeForm> {
                     color: Colors.deepPurple,
                     textColor: Colors.white,
                     onPressed: () {
-                      setState(() {
-                        String key = _uuid.v1();
-                        _ingredientFieldList.add(_buildSubField(
-                            key,
-                            ingredientsHint,
-                            ingredientsValidationText,
-                            ingredientsListName));
-                      });
+                      BlocProvider.of<RecipeBloc>(context).add(
+                          AddIngredientEvent(recipe: recipe, ingredient: ''));
                     },
                   )
                 ],
               ),
             ),
             Column(
-              children: _ingredientFieldList,
+              children: ingredientFieldList,
             ),
             Container(
               padding: EdgeInsets.only(top: 20.0),
@@ -151,18 +119,15 @@ class RecipeFormState extends State<RecipeForm> {
                     color: Colors.deepPurple,
                     textColor: Colors.white,
                     onPressed: () {
-                      setState(() {
-                        String key = _uuid.v1();
-                        _stepFieldList.add(_buildSubField(key, stepsHint,
-                            stepsValidationText, stepsListName));
-                      });
+                      BlocProvider.of<RecipeBloc>(context)
+                          .add(AddStepEvent(recipe: recipe, step: ''));
                     },
                   )
                 ],
               ),
             ),
             Column(
-              children: _stepFieldList,
+              children: stepFieldList,
             ),
             Container(
                 padding: EdgeInsets.only(top: 20.0),
@@ -172,10 +137,10 @@ class RecipeFormState extends State<RecipeForm> {
                     onPressed: () {
                       if (_formKey.currentState.validate()) {
                         _formKey.currentState.save();
-                        if (_recipe.id == null) {
-                          _insertNewRecipe(context);
+                        if (recipe.id == null) {
+                          _insertNewRecipe(context, recipe);
                         } else {
-                          _updateRecipe(context);
+                          _updateRecipe(context, recipe);
                         }
                       }
                     },
@@ -184,8 +149,8 @@ class RecipeFormState extends State<RecipeForm> {
         ));
   }
 
-  Widget _buildSubField(
-      String key, String hint, String validationText, String fieldList,
+  Widget _buildSubField(String key, int listIndex, Recipe recipe, String hint,
+      String validationText, String fieldList,
       {String initialValue = ''}) {
     return Row(
       key: Key(key),
@@ -195,13 +160,20 @@ class RecipeFormState extends State<RecipeForm> {
           child: TextFormField(
             initialValue: initialValue,
             decoration: InputDecoration(hintText: hint),
-            onSaved: ((String value) {
+            onChanged: (text) {
               if (fieldList == "ingredients") {
-                _recipe.ingredients.add(value);
-              } else {
-                _recipe.steps.add(value);
+                recipe.ingredients[listIndex] = text;
+              } else if (fieldList == "steps") {
+                recipe.steps[listIndex] = text;
               }
-            }),
+            },
+            onSaved: (text) {
+              if (fieldList == "ingredients") {
+                recipe.ingredients[listIndex] = text;
+              } else if (fieldList == "steps") {
+                recipe.steps[listIndex] = text;
+              }
+            },
             validator: (value) {
               if (value.isEmpty) {
                 return validationText;
@@ -216,27 +188,28 @@ class RecipeFormState extends State<RecipeForm> {
           textColor: Colors.white,
           shape: CircleBorder(side: BorderSide.none),
           onPressed: () {
-            setState(() {
-              if (fieldList == "ingredients") {
-                _ingredientFieldList
-                    .removeWhere((form) => form.key == Key(key));
-              } else {
-                _stepFieldList.removeWhere((form) => form.key == Key(key));
-              }
-            });
+            if (fieldList == "ingredients") {
+              BlocProvider.of<RecipeBloc>(context).add(RemoveIngredientEvent(
+                  recipe: recipe, ingredientIndex: listIndex));
+            } else {
+              BlocProvider.of<RecipeBloc>(context)
+                  .add(RemoveStepEvent(recipe: recipe, stepIndex: listIndex));
+            }
           },
         )
       ],
     );
   }
 
-  _insertNewRecipe(BuildContext context) async {
-    int id = await _recipeSqlClient.insertRecipe(_recipe);
-    Navigator.pop(context, id);
+  _insertNewRecipe(BuildContext context, Recipe recipe) async {
+    BlocProvider.of<RecipeListBloc>(context)
+        .add(AddRecipeEvent(recipe: recipe));
+    Navigator.pop(context, recipe.id);
   }
 
-  _updateRecipe(BuildContext context) async {
-    _recipeSqlClient.updateRecipe(_recipe);
-    Navigator.pop(context, _recipe.id);
+  _updateRecipe(BuildContext context, Recipe recipe) async {
+    BlocProvider.of<RecipeListBloc>(context)
+        .add(EditRecipeEvent(recipe: recipe));
+    Navigator.pop(context, recipe.id);
   }
 }
