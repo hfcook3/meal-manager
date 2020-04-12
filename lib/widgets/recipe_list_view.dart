@@ -3,7 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:mealmanager/blocs/recipe_list_bloc.dart';
-import 'package:mealmanager/models/recipe_model.dart';
+import 'package:mealmanager/models/models.dart';
+import 'package:mealmanager/widgets/top_level_drawer.dart';
 import 'package:mealmanager/widgets/widgets.dart';
 import 'package:mealmanager/blocs/blocs.dart';
 
@@ -22,7 +23,7 @@ class RecipeListViewState extends State<RecipeListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Meal Manager'),
+        title: Text('Recipes'),
         actions: <Widget>[
           PopupMenuButton(
             itemBuilder: (BuildContext buildContext) {
@@ -32,6 +33,9 @@ class RecipeListViewState extends State<RecipeListView> {
             },
           )
         ],
+      ),
+      drawer: TopLevelDrawer(
+        callingWidget: DrawerWidgets.recipes,
       ),
       body: BlocBuilder<RecipeListBloc, RecipeListState>(
           builder: (context, state) {

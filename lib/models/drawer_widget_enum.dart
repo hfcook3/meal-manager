@@ -1,0 +1,1 @@
+enum DrawerWidgets { recipes, groceryLists }
