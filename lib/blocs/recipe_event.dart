@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:mealmanager/blocs/blocs.dart';
 import 'package:meta/meta.dart';
 
 import 'package:mealmanager/models/models.dart';

@@ -106,7 +106,15 @@ class GroceryListSqlClient {
     }
   }
 
-  Future<void> updateGroceryItems(GroceryList groceryList) async {
+  Future<void> updateGroceryList(GroceryList groceryList) async {
+    try {
+      await _database.execute('UPDATE GroceryItems SET name = ?, dateAdded = ?',
+          [groceryList.name, groceryList.dateAdded]);
+    } on Exception catch (e) {
+      debugPrint(
+          'An error occurred when updating a grocery list in the DB: $e');
+    }
+
     try {
       await _database.execute(
           'DELETE FROM GroceryItems WHERE listKey = ?', [groceryList.id]);
