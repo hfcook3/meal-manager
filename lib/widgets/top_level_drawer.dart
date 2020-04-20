@@ -30,10 +30,13 @@ class TopLevelDrawer extends StatelessWidget {
             title: Text('Recipes'),
             onTap: () {
               if (callingWidget != DrawerWidgets.recipes) {
-                Navigator.push(
+                BlocProvider.of<RecipeListBloc>(context)
+                    .add(GetRecipeListEvent());
+                Navigator.pushAndRemoveUntil(
                     context,
                     new MaterialPageRoute(
-                        builder: (context) => RecipeListView()));
+                        builder: (context) => RecipeListView()),
+                    (route) => false);
               } else {
                 Navigator.pop(context);
               }
@@ -45,10 +48,11 @@ class TopLevelDrawer extends StatelessWidget {
               if (callingWidget != DrawerWidgets.groceryLists) {
                 BlocProvider.of<GroceryHubBloc>(context)
                     .add(GetGroceryListsEvent());
-                Navigator.push(
+                Navigator.pushAndRemoveUntil(
                     context,
                     new MaterialPageRoute(
-                        builder: (context) => GroceryListHub()));
+                        builder: (context) => GroceryListHub()),
+                    (route) => false);
               } else {
                 Navigator.pop(context);
               }
