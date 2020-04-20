@@ -12,12 +12,12 @@ class GroceryListSqlClient {
     var dbPath = await getDatabasesPath();
     await Directory(dbPath).create(recursive: true);
 
-    _database = await openDatabase(join(dbPath, 'meal_manager.db'), version: 1,
-        onCreate: (Database db, int version) async {
+    _database = await openDatabase(join(dbPath, 'meal_manager_groceries.db'),
+        version: 1, onCreate: (Database db, int version) async {
       await db.execute(
-          'CREATE TABLE GroceryLists(id INTEGER PRIMARY KEY, name TEXT, dateAdded DATETIME)');
+          'CREATE TABLE GroceryLists(id INTEGER PRIMARY KEY, name TEXT, dateAdded INTEGER)');
       await db.execute(
-          'CREATE TABLE GroceryItems(id INTEGER PRIMARY KEY, item TEXT, category TEXT, ' +
+          'CREATE TABLE GroceryItems(id INTEGER PRIMARY KEY, item TEXT, category TEXT, listKey INTEGER, ' +
               'CONSTRAINT fk_lists FOREIGN KEY (listKey) REFERENCES GroceryLists(id))');
     });
   }
@@ -33,8 +33,11 @@ class GroceryListSqlClient {
     }
 
     return List.generate(groceryLists.length, (i) {
-      return GroceryList.withMeta(groceryLists[i]['id'],
-          groceryLists[i]['name'], groceryLists[i]['dateAdded']);
+      return GroceryList.withMeta(
+          groceryLists[i]['id'],
+          groceryLists[i]['name'],
+          DateTime.fromMillisecondsSinceEpoch(groceryLists[i]['dateAdded'])
+              .toLocal());
     });
   }
 
@@ -79,9 +82,14 @@ class GroceryListSqlClient {
 
   Future<void> insertGroceryList(GroceryList groceryList) async {
     try {
-      await _database.execute(
-          'INSERT INTO GroceryLists(name TEXT, dateAdded DATETIME) VALUES (?, ?)',
-          [groceryList.name, groceryList.dateAdded]);
+      var newId = await _database.rawInsert(
+          'INSERT INTO GroceryLists(name, dateAdded) VALUES (?, ?)', [
+        groceryList.name,
+        groceryList.dateAdded.toUtc().millisecondsSinceEpoch
+      ]);
+
+      groceryList.id = newId;
+      await insertGroceryItems(groceryList, groceryList.items);
     } on Exception catch (e) {
       debugPrint(
           'An error occurred when inserting a grocery list into the DB: $e');
@@ -93,7 +101,7 @@ class GroceryListSqlClient {
     for (int i = 0; i < groceryItems.length; i++) {
       try {
         await _database.execute(
-            'INSERT INTO GroceryItems(item TEXT, category TEXT, listKey INTEGER) VALUES (?, ?, ?)',
+            'INSERT INTO GroceryItems(item, category, listKey) VALUES (?, ?, ?)',
             [
               groceryList.items[i].item,
               groceryList.items[i].category,
