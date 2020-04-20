@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mealmanager/blocs/blocs.dart';
 
 import 'package:mealmanager/models/models.dart';
+import 'package:mealmanager/widgets/grocery_list_hub.dart';
 import 'widgets.dart';
 
 class TopLevelDrawer extends StatelessWidget {
@@ -39,9 +42,16 @@ class TopLevelDrawer extends StatelessWidget {
           ListTile(
             title: Text('Grocery Lists'),
             onTap: () {
-              // Update the state of the app.
-              // ...
-              Navigator.pop(context);
+              if (callingWidget != DrawerWidgets.groceryLists) {
+                BlocProvider.of<GroceryHubBloc>(context)
+                    .add(GetGroceryListsEvent());
+                Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                        builder: (context) => GroceryListHub()));
+              } else {
+                Navigator.pop(context);
+              }
             },
           ),
         ],
