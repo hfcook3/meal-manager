@@ -7,6 +7,13 @@ abstract class GroceryListEvent extends Equatable {
   const GroceryListEvent();
 }
 
+class InitializeNewGroceryListEvent extends GroceryListEvent {
+  const InitializeNewGroceryListEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
 class GetFullGroceryListEvent extends GroceryListEvent {
   final GroceryList groceryList;
 

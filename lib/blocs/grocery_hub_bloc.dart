@@ -46,7 +46,7 @@ class GroceryHubBloc extends Bloc<GroceryHubEvent, GroceryHubState> {
     yield GroceryHubLoading();
 
     try {
-      groceryListRepository.deleteGroceryList(event.groceryList);
+      await groceryListRepository.deleteGroceryList(event.groceryList);
       final groceryLists = await groceryListRepository.getGroceryLists();
       yield GroceryHubLoaded(groceryLists: groceryLists);
     } on Exception catch (e) {
@@ -59,7 +59,7 @@ class GroceryHubBloc extends Bloc<GroceryHubEvent, GroceryHubState> {
     yield GroceryHubLoading();
 
     try {
-      groceryListRepository.insertGroceryList(event.groceryList);
+      await groceryListRepository.insertGroceryList(event.groceryList);
       final groceryLists = await groceryListRepository.getGroceryLists();
       yield GroceryHubLoaded(groceryLists: groceryLists);
     } on Exception catch (e) {
