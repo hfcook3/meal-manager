@@ -59,94 +59,97 @@ class RecipeFormState extends State<RecipeForm> {
           initialValue: recipe.steps[i]);
     });
 
-    return Form(
-        key: _formKey,
-        child: ListView(
-          children: <Widget>[
-            Text(
-              'Title',
-              style: TextStyle(fontSize: 20),
-            ),
-            TextFormField(
-              initialValue: recipe.title,
-              decoration:
-                  InputDecoration(hintText: 'Enter the recipe title here'),
-              onSaved: (String value) {
-                recipe.title = value;
-              },
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Please enter a title.';
-                }
-                return null;
-              },
-            ),
-            Container(
-              padding: EdgeInsets.only(top: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    'Ingredients',
-                    style: TextStyle(fontSize: 20),
+    return Container(
+        padding: EdgeInsets.all(20.0),
+        child: Form(
+            key: _formKey,
+            child: ListView(
+              children: <Widget>[
+                Text(
+                  'Title',
+                  style: TextStyle(fontSize: 20),
+                ),
+                TextFormField(
+                  initialValue: recipe.title,
+                  decoration:
+                      InputDecoration(hintText: 'Enter the recipe title here'),
+                  onSaved: (String value) {
+                    recipe.title = value;
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter a title.';
+                    }
+                    return null;
+                  },
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'Ingredients',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      RaisedButton(
+                        child: Icon(Icons.add),
+                        color: Colors.deepPurple,
+                        textColor: Colors.white,
+                        onPressed: () {
+                          BlocProvider.of<RecipeBloc>(context).add(
+                              AddIngredientEvent(
+                                  recipe: recipe, ingredient: ''));
+                        },
+                      )
+                    ],
                   ),
-                  RaisedButton(
-                    child: Icon(Icons.add),
-                    color: Colors.deepPurple,
-                    textColor: Colors.white,
-                    onPressed: () {
-                      BlocProvider.of<RecipeBloc>(context).add(
-                          AddIngredientEvent(recipe: recipe, ingredient: ''));
-                    },
-                  )
-                ],
-              ),
-            ),
-            Column(
-              children: ingredientFieldList,
-            ),
-            Container(
-              padding: EdgeInsets.only(top: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    'Steps',
-                    style: TextStyle(fontSize: 20),
+                ),
+                Column(
+                  children: ingredientFieldList,
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'Steps',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      RaisedButton(
+                        child: Icon(Icons.add),
+                        color: Colors.deepPurple,
+                        textColor: Colors.white,
+                        onPressed: () {
+                          BlocProvider.of<RecipeBloc>(context)
+                              .add(AddStepEvent(recipe: recipe, step: ''));
+                        },
+                      )
+                    ],
                   ),
-                  RaisedButton(
-                    child: Icon(Icons.add),
-                    color: Colors.deepPurple,
-                    textColor: Colors.white,
-                    onPressed: () {
-                      BlocProvider.of<RecipeBloc>(context)
-                          .add(AddStepEvent(recipe: recipe, step: ''));
-                    },
-                  )
-                ],
-              ),
-            ),
-            Column(
-              children: stepFieldList,
-            ),
-            Container(
-                padding: EdgeInsets.only(top: 20.0),
-                child: RaisedButton(
-                    color: Colors.deepPurple,
-                    textColor: Colors.white,
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        _formKey.currentState.save();
-                        if (recipe.id == null) {
-                          _insertNewRecipe(context, recipe);
-                        } else {
-                          _updateRecipe(context, recipe);
-                        }
-                      }
-                    },
-                    child: Text('Submit')))
-          ],
-        ));
+                ),
+                Column(
+                  children: stepFieldList,
+                ),
+                Container(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: RaisedButton(
+                        color: Colors.deepPurple,
+                        textColor: Colors.white,
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            _formKey.currentState.save();
+                            if (recipe.id == null) {
+                              _insertNewRecipe(context, recipe);
+                            } else {
+                              _updateRecipe(context, recipe);
+                            }
+                          }
+                        },
+                        child: Text('Submit')))
+              ],
+            )));
   }
 
   Widget _buildSubField(String key, int listIndex, Recipe recipe, String hint,

@@ -7,6 +7,13 @@ abstract class RecipeEvent extends Equatable {
   const RecipeEvent();
 }
 
+class InitializeNewRecipeEvent extends RecipeEvent {
+  const InitializeNewRecipeEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
 class GetFullRecipeEvent extends RecipeEvent {
   final Recipe recipe;
 
