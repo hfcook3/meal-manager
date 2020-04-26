@@ -6,3 +6,4 @@ export 'top_level_drawer.dart';
 export 'grocery_list_hub.dart';
 export 'grocery_list_form.dart';
 export 'grocery_list_view.dart';
+export 'grocery_list_choice.dart';

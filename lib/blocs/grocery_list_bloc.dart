@@ -25,6 +25,9 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
     if (event is AddGroceryItemEvent) {
       yield* _mapAddGroceryItemEvent(event);
     }
+    if (event is AddIngredientListEvent) {
+      yield* _mapAddIngredientListEvent(event);
+    }
     if (event is RemoveGroceryItemEvent) {
       yield* _mapRemoveGroceryItemEvent(event);
     }
@@ -57,6 +60,19 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
 
     try {
       event.groceryList.items.add(event.groceryItem);
+      yield GroceryListLoaded(groceryList: event.groceryList);
+    } on Exception catch (e) {
+      yield GroceryListError();
+    }
+  }
+
+  Stream<GroceryListState> _mapAddIngredientListEvent(
+      AddIngredientListEvent event) async* {
+    yield GroceryListLoading();
+
+    try {
+      await groceryListRepository.insertGroceryItems(
+          event.groceryList, event.groceryItems);
       yield GroceryListLoaded(groceryList: event.groceryList);
     } on Exception catch (e) {
       yield GroceryListError();

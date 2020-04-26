@@ -102,11 +102,7 @@ class GroceryListSqlClient {
       try {
         await _database.execute(
             'INSERT INTO GroceryItems(item, category, listKey) VALUES (?, ?, ?)',
-            [
-              groceryList.items[i].item,
-              groceryList.items[i].category,
-              groceryList.id
-            ]);
+            [groceryItems[i].item, groceryItems[i].category, groceryList.id]);
       } on Exception catch (e) {
         debugPrint(
             'An error occurred when inserting a grocery item into the DB: $e');
@@ -116,8 +112,11 @@ class GroceryListSqlClient {
 
   Future<void> updateGroceryList(GroceryList groceryList) async {
     try {
-      await _database.execute('UPDATE GroceryItems SET name = ?, dateAdded = ?',
-          [groceryList.name, groceryList.dateAdded]);
+      await _database.execute(
+          'UPDATE GroceryLists SET name = ?, dateAdded = ?', [
+        groceryList.name,
+        groceryList.dateAdded.toUtc().millisecondsSinceEpoch
+      ]);
     } on Exception catch (e) {
       debugPrint(
           'An error occurred when updating a grocery list in the DB: $e');
@@ -134,7 +133,7 @@ class GroceryListSqlClient {
     for (int i = 0; i < groceryList.items.length; i++) {
       try {
         await _database.execute(
-            'INSERT INTO GroceryItems(item TEXT, category TEXT, listKey INTEGER) VALUES (?, ?, ?)',
+            'INSERT INTO GroceryItems(item, category, listKey) VALUES (?, ?, ?)',
             [
               groceryList.items[i].item,
               groceryList.items[i].category,

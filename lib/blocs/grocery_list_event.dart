@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mealmanager/blocs/blocs.dart';
 import 'package:meta/meta.dart';
 
 import 'package:mealmanager/models/models.dart';
@@ -22,6 +23,18 @@ class GetFullGroceryListEvent extends GroceryListEvent {
 
   @override
   List<Object> get props => [groceryList];
+}
+
+class AddIngredientListEvent extends GroceryListEvent {
+  final GroceryList groceryList;
+  final List<GroceryItem> groceryItems;
+
+  const AddIngredientListEvent(
+      {@required this.groceryList, @required this.groceryItems})
+      : assert(groceryList != null && groceryItems != null);
+
+  @override
+  List<Object> get props => [groceryList, groceryItems];
 }
 
 class AddGroceryItemEvent extends GroceryListEvent {
