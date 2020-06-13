@@ -33,4 +33,8 @@ class GroceryListRepository {
   Future<void> updateGroceryItems(GroceryList groceryList) async {
     return await grocerySqlClient.updateGroceryList(groceryList);
   }
+
+  Future<void> updateCheckedStatus(GroceryItem groceryItem) async {
+    return await grocerySqlClient.updateCheckedStatus(groceryItem);
+  }
 }

@@ -31,6 +31,9 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
     if (event is RemoveGroceryItemEvent) {
       yield* _mapRemoveGroceryItemEvent(event);
     }
+    if (event is CheckGroceryItemEvent) {
+      yield* _mapCheckGroceryItemEvent(event);
+    }
   }
 
   Stream<GroceryListState> _mapInitializeNewGroceryListEvent(
@@ -56,13 +59,9 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
 
   Stream<GroceryListState> _mapAddGroceryItemEvent(
       AddGroceryItemEvent event) async* {
-    yield GroceryListLoading();
-
-    try {
+    if (state is GroceryListLoaded) {
       event.groceryList.items.add(event.groceryItem);
       yield GroceryListLoaded(groceryList: event.groceryList);
-    } on Exception catch (e) {
-      yield GroceryListError();
     }
   }
 
@@ -88,6 +87,21 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
       yield GroceryListLoaded(groceryList: event.groceryList);
     } on Exception catch (e) {
       yield GroceryListError();
+    }
+  }
+
+  Stream<GroceryListState> _mapCheckGroceryItemEvent(
+      CheckGroceryItemEvent event) async* {
+    if (state is GroceryListLoaded) {
+      event.groceryItem.checked = !event.groceryItem.checked;
+      event.groceryList.items[event.groceryItemIndex] = event.groceryItem;
+
+      final groceryList = new GroceryList.withMeta(event.groceryList.id,
+          event.groceryList.name, event.groceryList.dateAdded);
+      groceryList.items = event.groceryList.items;
+
+      yield GroceryListLoaded(groceryList: groceryList);
+      groceryListRepository.updateCheckedStatus(event.groceryItem);
     }
   }
 }

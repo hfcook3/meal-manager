@@ -17,7 +17,7 @@ class GroceryListSqlClient {
       await db.execute(
           'CREATE TABLE GroceryLists(id INTEGER PRIMARY KEY, name TEXT, dateAdded INTEGER)');
       await db.execute(
-          'CREATE TABLE GroceryItems(id INTEGER PRIMARY KEY, item TEXT, category TEXT, listKey INTEGER, ' +
+          'CREATE TABLE GroceryItems(id INTEGER PRIMARY KEY, item TEXT, category TEXT, listKey INTEGER, checked BIT, ' +
               'CONSTRAINT fk_lists FOREIGN KEY (listKey) REFERENCES GroceryLists(id))');
     });
   }
@@ -53,8 +53,11 @@ class GroceryListSqlClient {
     }
 
     List<GroceryItem> generatedItems = List.generate(groceryItems.length, (i) {
-      return GroceryItem.withData(groceryItems[i]['id'],
-          groceryItems[i]['item'], groceryItems[i]['category']);
+      return GroceryItem.withData(
+          groceryItems[i]['id'],
+          groceryItems[i]['item'],
+          groceryItems[i]['category'],
+          groceryItems[i]['checked'] == 1);
     });
 
     groceryList.items = generatedItems;
@@ -101,8 +104,13 @@ class GroceryListSqlClient {
     for (int i = 0; i < groceryItems.length; i++) {
       try {
         await _database.execute(
-            'INSERT INTO GroceryItems(item, category, listKey) VALUES (?, ?, ?)',
-            [groceryItems[i].item, groceryItems[i].category, groceryList.id]);
+            'INSERT INTO GroceryItems(item, category, checked, listKey) VALUES (?, ?, ?, ?)',
+            [
+              groceryItems[i].item,
+              groceryItems[i].category,
+              false,
+              groceryList.id
+            ]);
       } on Exception catch (e) {
         debugPrint(
             'An error occurred when inserting a grocery item into the DB: $e');
@@ -133,16 +141,28 @@ class GroceryListSqlClient {
     for (int i = 0; i < groceryList.items.length; i++) {
       try {
         await _database.execute(
-            'INSERT INTO GroceryItems(item, category, listKey) VALUES (?, ?, ?)',
+            'INSERT INTO GroceryItems(item, category, checked, listKey) VALUES (?, ?, ?)',
             [
               groceryList.items[i].item,
               groceryList.items[i].category,
+              false,
               groceryList.id
             ]);
       } on Exception catch (e) {
         debugPrint(
             'An error occurred when inserting a grocery item into the DB: $e');
       }
+    }
+  }
+
+  Future<void> updateCheckedStatus(GroceryItem groceryItem) async {
+    try {
+      await _database.execute(
+          'UPDATE GroceryItems SET checked = ? WHERE id = ?',
+          [groceryItem.checked, groceryItem.id]);
+    } on Exception catch (e) {
+      debugPrint(
+          'An error occurred when inserting a grocery item into the DB: $e');
     }
   }
 }

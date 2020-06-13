@@ -112,7 +112,7 @@ class RecipeView extends StatelessWidget {
           }
 
           var groceryItems = recipe.ingredients.map<GroceryItem>((ingredient) {
-            return new GroceryItem.withNoId(ingredient, "Other");
+            return new GroceryItem.withNoId(ingredient, "Other", false);
           }).toList();
           BlocProvider.of<GroceryListBloc>(context).add(AddIngredientListEvent(
               groceryList: groceryList, groceryItems: groceryItems));

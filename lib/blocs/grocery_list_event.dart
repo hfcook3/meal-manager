@@ -60,3 +60,20 @@ class RemoveGroceryItemEvent extends GroceryListEvent {
   @override
   List<Object> get props => [groceryList, groceryItemIndex];
 }
+
+class CheckGroceryItemEvent extends GroceryListEvent {
+  final GroceryItem groceryItem;
+  final GroceryList groceryList;
+  final int groceryItemIndex;
+
+  const CheckGroceryItemEvent(
+      {@required this.groceryItem,
+      @required this.groceryList,
+      @required this.groceryItemIndex})
+      : assert(groceryItem != null &&
+            groceryList != null &&
+            groceryItemIndex != null);
+
+  @override
+  List<Object> get props => [groceryItem, groceryList, groceryItemIndex];
+}

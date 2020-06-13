@@ -15,7 +15,7 @@ class GroceryListView extends StatelessWidget {
             return Center(child: CircularProgressIndicator());
           }
           if (state is GroceryListLoaded) {
-            return _buildGroceryList(state.groceryList);
+            return _buildGroceryList(context, state.groceryList);
           }
           if (state is GroceryListEmpty) {
             return Center(
@@ -25,30 +25,27 @@ class GroceryListView extends StatelessWidget {
         }));
   }
 
-  Widget _buildGroceryList(GroceryList groceryList) {
-    return ListView(padding: EdgeInsets.all(12.0), children: [
-      Text(
-        groceryList.name,
-        style: TextStyle(fontSize: 40.0),
-        textAlign: TextAlign.left,
-      ),
-      Divider(
-        thickness: 2.0,
-      ),
-      Column(
-        children: List.generate(groceryList.items.length, (i) {
-          return Row(children: <Widget>[
-            Icon(Icons.arrow_right),
-            Text(
-              groceryList.items[i].item,
+  Widget _buildGroceryList(BuildContext context, GroceryList groceryList) {
+    return ListView.builder(
+        itemCount: groceryList.items.length,
+        itemBuilder: (BuildContext context, int index) {
+          final recipeItem = groceryList.items[index];
+          return ListTile(
+            leading: Checkbox(
+              value: recipeItem.checked,
+              onChanged: (isChecked) {
+                BlocProvider.of<GroceryListBloc>(context).add(
+                    CheckGroceryItemEvent(
+                        groceryItem: recipeItem,
+                        groceryList: groceryList,
+                        groceryItemIndex: index));
+              },
+            ),
+            trailing: Text(
+              recipeItem.item,
               style: TextStyle(fontSize: 20.0),
-            )
-          ]);
-        }),
-      ),
-      SizedBox(
-        height: 20,
-      ),
-    ]);
+            ),
+          );
+        });
   }
 }
