@@ -55,8 +55,8 @@ class GroceryListSqlClient {
     List<GroceryItem> generatedItems = List.generate(groceryItems.length, (i) {
       return GroceryItem.withData(
           groceryItems[i]['id'],
-          groceryItems[i]['item'],
-          groceryItems[i]['category'],
+          groceryItems[i]['item'] ?? "",
+          groceryItems[i]['category'] ?? "",
           groceryItems[i]['checked'] == 1);
     });
 
@@ -141,11 +141,11 @@ class GroceryListSqlClient {
     for (int i = 0; i < groceryList.items.length; i++) {
       try {
         await _database.execute(
-            'INSERT INTO GroceryItems(item, category, checked, listKey) VALUES (?, ?, ?)',
+            'INSERT INTO GroceryItems(item, category, checked, listKey) VALUES (?, ?, ?, ?)',
             [
-              groceryList.items[i].item,
-              groceryList.items[i].category,
-              false,
+              groceryList.items[i].item ?? "",
+              groceryList.items[i].category ?? "",
+              groceryList.items[i].checked ?? false,
               groceryList.id
             ]);
       } on Exception catch (e) {

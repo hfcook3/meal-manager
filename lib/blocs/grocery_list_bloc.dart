@@ -61,32 +61,34 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
       AddGroceryItemEvent event) async* {
     if (state is GroceryListLoaded) {
       event.groceryList.items.add(event.groceryItem);
-      yield GroceryListLoaded(groceryList: event.groceryList);
+      final groceryList = new GroceryList.withMeta(event.groceryList.id,
+          event.groceryList.name, event.groceryList.dateAdded);
+      groceryList.items = event.groceryList.items;
+
+      yield GroceryListLoaded(groceryList: groceryList);
     }
   }
 
   Stream<GroceryListState> _mapAddIngredientListEvent(
       AddIngredientListEvent event) async* {
-    yield GroceryListLoading();
-
-    try {
+    if (state is GroceryListLoaded) {
       await groceryListRepository.insertGroceryItems(
           event.groceryList, event.groceryItems);
-      yield GroceryListLoaded(groceryList: event.groceryList);
-    } on Exception catch (e) {
-      yield GroceryListError();
+      final groceryList = new GroceryList.withMeta(event.groceryList.id,
+          event.groceryList.name, event.groceryList.dateAdded);
+      yield GroceryListLoaded(groceryList: groceryList);
     }
   }
 
   Stream<GroceryListState> _mapRemoveGroceryItemEvent(
       RemoveGroceryItemEvent event) async* {
-    yield GroceryListLoading();
-
-    try {
+    if (state is GroceryListLoaded) {
       event.groceryList.items.removeAt(event.groceryItemIndex);
-      yield GroceryListLoaded(groceryList: event.groceryList);
-    } on Exception catch (e) {
-      yield GroceryListError();
+      final groceryList = new GroceryList.withMeta(event.groceryList.id,
+          event.groceryList.name, event.groceryList.dateAdded);
+      groceryList.items = event.groceryList.items;
+
+      yield GroceryListLoaded(groceryList: groceryList);
     }
   }
 
