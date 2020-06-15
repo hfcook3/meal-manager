@@ -65,6 +65,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
           event.groceryList.name, event.groceryList.dateAdded);
       groceryList.items = event.groceryList.items;
 
+      groceryListRepository.updateGroceryItems(groceryList);
+
       yield GroceryListLoaded(groceryList: groceryList);
     }
   }
@@ -87,6 +89,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
       final groceryList = new GroceryList.withMeta(event.groceryList.id,
           event.groceryList.name, event.groceryList.dateAdded);
       groceryList.items = event.groceryList.items;
+
+      groceryListRepository.updateGroceryItems(groceryList);
 
       yield GroceryListLoaded(groceryList: groceryList);
     }
