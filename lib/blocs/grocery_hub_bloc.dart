@@ -24,9 +24,6 @@ class GroceryHubBloc extends Bloc<GroceryHubEvent, GroceryHubState> {
     if (event is AddGroceryListEvent) {
       yield* _mapAddGroceryListEvent(event);
     }
-    if (event is EditGroceryListEvent) {
-      yield* _mapEditGroceryListEvent(event);
-    }
   }
 
   Stream<GroceryHubState> _mapGetGroceryListsEvent(
@@ -60,19 +57,6 @@ class GroceryHubBloc extends Bloc<GroceryHubEvent, GroceryHubState> {
 
     try {
       await groceryListRepository.insertGroceryList(event.groceryList);
-      final groceryLists = await groceryListRepository.getGroceryLists();
-      yield GroceryHubLoaded(groceryLists: groceryLists);
-    } on Exception catch (e) {
-      yield GroceryHubError();
-    }
-  }
-
-  Stream<GroceryHubState> _mapEditGroceryListEvent(
-      EditGroceryListEvent event) async* {
-    yield GroceryHubLoading();
-
-    try {
-      groceryListRepository.updateGroceryItems(event.groceryList);
       final groceryLists = await groceryListRepository.getGroceryLists();
       yield GroceryHubLoaded(groceryLists: groceryLists);
     } on Exception catch (e) {

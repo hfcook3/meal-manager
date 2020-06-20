@@ -16,9 +16,19 @@ class InitializeNewGroceryListEvent extends GroceryListEvent {
 }
 
 class GetFullGroceryListEvent extends GroceryListEvent {
+  final int groceryListId;
+
+  const GetFullGroceryListEvent({@required this.groceryListId})
+      : assert(groceryListId != null);
+
+  @override
+  List<Object> get props => [groceryListId];
+}
+
+class UpdateGroceryListEvent extends GroceryListEvent {
   final GroceryList groceryList;
 
-  const GetFullGroceryListEvent({@required this.groceryList})
+  const UpdateGroceryListEvent({@required this.groceryList})
       : assert(groceryList != null);
 
   @override

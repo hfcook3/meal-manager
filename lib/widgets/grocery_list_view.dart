@@ -3,12 +3,26 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:mealmanager/models/models.dart';
 import 'package:mealmanager/blocs/blocs.dart';
+import 'package:mealmanager/widgets/widgets.dart';
 
 class GroceryListView extends StatelessWidget {
+  final int groceryListId;
+
+  const GroceryListView({Key key, this.groceryListId}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text('Meal Manager')),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.edit),
+          onPressed: () async {
+            BlocProvider.of<GroceryListBloc>(context)
+                .add(GetFullGroceryListEvent(groceryListId: groceryListId));
+            await Navigator.push(context,
+                new MaterialPageRoute(builder: (context) => GroceryListForm()));
+          },
+        ),
         body: BlocBuilder<GroceryListBloc, GroceryListState>(
             builder: (context, state) {
           if (state is GroceryListLoading) {
@@ -26,7 +40,23 @@ class GroceryListView extends StatelessWidget {
   }
 
   Widget _buildGroceryList(BuildContext context, GroceryList groceryList) {
+    return ListView(
+      padding: EdgeInsets.all(12.0),
+      children: [
+        Center(
+            child: Text(
+          groceryList.name,
+          style: TextStyle(fontSize: 18),
+        )),
+        Column(children: [_buildGroceryListItems(context, groceryList)])
+      ],
+    );
+  }
+
+  Widget _buildGroceryListItems(BuildContext context, GroceryList groceryList) {
     return ListView.builder(
+        shrinkWrap: true,
+        scrollDirection: Axis.vertical,
         itemCount: groceryList.items.length,
         itemBuilder: (BuildContext context, int index) {
           final recipeItem = groceryList.items[index];

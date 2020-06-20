@@ -22,6 +22,9 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
     if (event is GetFullGroceryListEvent) {
       yield* _mapGetFullGroceryListEvent(event);
     }
+    if (event is UpdateGroceryListEvent) {
+      yield* _mapUpdateGroceryListEvent(event);
+    }
     if (event is AddGroceryItemEvent) {
       yield* _mapAddGroceryItemEvent(event);
     }
@@ -50,10 +53,22 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
 
     try {
       var fullGroceryList =
-          await groceryListRepository.getFullGroceryList(event.groceryList);
+          await groceryListRepository.getFullGroceryList(event.groceryListId);
       yield GroceryListLoaded(groceryList: fullGroceryList);
     } on Exception catch (e) {
       yield GroceryListError();
+    }
+  }
+
+  Stream<GroceryListState> _mapUpdateGroceryListEvent(
+      UpdateGroceryListEvent event) async* {
+    if (state is GroceryListLoaded) {
+      await groceryListRepository.updateGroceryList(event.groceryList);
+
+      final groceryList =
+          await groceryListRepository.getFullGroceryList(event.groceryList.id);
+
+      yield GroceryListLoaded(groceryList: groceryList);
     }
   }
 
@@ -65,7 +80,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
           event.groceryList.name, event.groceryList.dateAdded);
       groceryList.items = event.groceryList.items;
 
-      groceryListRepository.updateGroceryItems(groceryList);
+      await groceryListRepository.insertNewGroceryItem(
+          event.groceryItem, event.groceryList.id);
 
       yield GroceryListLoaded(groceryList: groceryList);
     }
@@ -78,6 +94,7 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
           event.groceryList, event.groceryItems);
       final groceryList = new GroceryList.withMeta(event.groceryList.id,
           event.groceryList.name, event.groceryList.dateAdded);
+
       yield GroceryListLoaded(groceryList: groceryList);
     }
   }
@@ -90,7 +107,7 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
           event.groceryList.name, event.groceryList.dateAdded);
       groceryList.items = event.groceryList.items;
 
-      groceryListRepository.updateGroceryItems(groceryList);
+      await groceryListRepository.updateGroceryList(groceryList);
 
       yield GroceryListLoaded(groceryList: groceryList);
     }
@@ -106,8 +123,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
           event.groceryList.name, event.groceryList.dateAdded);
       groceryList.items = event.groceryList.items;
 
+      await groceryListRepository.updateGroceryItem(event.groceryItem);
       yield GroceryListLoaded(groceryList: groceryList);
-      groceryListRepository.updateCheckedStatus(event.groceryItem);
     }
   }
 }

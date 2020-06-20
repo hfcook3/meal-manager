@@ -41,16 +41,24 @@ class GroceryListSqlClient {
     });
   }
 
-  Future<GroceryList> getFullGroceryList(GroceryList groceryList) async {
+  Future<GroceryList> getFullGroceryList(int groceryListId) async {
+    List<Map<String, dynamic>> groceryLists;
     List<Map<String, dynamic>> groceryItems;
 
     try {
+      groceryLists = await _database
+          .rawQuery('SELECT * FROM GroceryLists WHERE id = ?', [groceryListId]);
       groceryItems = await _database.rawQuery(
-          'SELECT * FROM GroceryItems WHERE listKey = ?', [groceryList.id]);
+          'SELECT * FROM GroceryItems WHERE listKey = ?', [groceryListId]);
     } on Exception catch (e) {
       debugPrint('An error occurred when retrieving grocery lists from DB: $e');
       return GroceryList();
     }
+    var groceryList = new GroceryList.withMeta(
+        groceryListId,
+        groceryLists[0]['name'],
+        DateTime.fromMillisecondsSinceEpoch(groceryLists[0]['dateAdded'])
+            .toLocal());
 
     List<GroceryItem> generatedItems = List.generate(groceryItems.length, (i) {
       return GroceryItem.withData(
@@ -121,9 +129,10 @@ class GroceryListSqlClient {
   Future<void> updateGroceryList(GroceryList groceryList) async {
     try {
       await _database.execute(
-          'UPDATE GroceryLists SET name = ?, dateAdded = ?', [
+          'UPDATE GroceryLists SET name = ?, dateAdded = ? WHERE id = ?', [
         groceryList.name,
-        groceryList.dateAdded.toUtc().millisecondsSinceEpoch
+        groceryList.dateAdded.toUtc().millisecondsSinceEpoch,
+        groceryList.id
       ]);
     } on Exception catch (e) {
       debugPrint(
@@ -155,11 +164,46 @@ class GroceryListSqlClient {
     }
   }
 
-  Future<void> updateCheckedStatus(GroceryItem groceryItem) async {
+  Future<GroceryItem> getGroceryItem(int itemId) async {
+    List<Map<String, dynamic>> results;
+    try {
+      results = await _database
+          .rawQuery('SELECT * FROM GroceryItems WHERE id = ?', [itemId]);
+    } on Exception catch (e) {
+      debugPrint(
+          'An error occurred when inserting a grocery item into the DB: $e');
+    }
+
+    return GroceryItem.withData(results[0]['id'], results[0]['item'] ?? "",
+        results[0]['category'] ?? "", results[0]['checked'] == 1);
+  }
+
+  Future<void> insertNewGroceryItem(GroceryItem groceryItem, int listId) async {
     try {
       await _database.execute(
-          'UPDATE GroceryItems SET checked = ? WHERE id = ?',
-          [groceryItem.checked, groceryItem.id]);
+          'INSERT INTO GroceryItems(item, category, checked, listKey) VALUES (?, ?, ?, ?)',
+          [
+            groceryItem.item ?? "",
+            groceryItem.category ?? "",
+            groceryItem.checked ?? false,
+            listId
+          ]);
+    } on Exception catch (e) {
+      debugPrint(
+          'An error occurred when inserting a grocery item into the DB: $e');
+    }
+  }
+
+  Future<void> updateGroceryItem(GroceryItem groceryItem) async {
+    try {
+      await _database.execute(
+          'UPDATE GroceryItems SET item = ?, category = ?, checked = ? WHERE id = ?',
+          [
+            groceryItem.item ?? "",
+            groceryItem.category ?? "",
+            groceryItem.checked ?? false,
+            groceryItem.id
+          ]);
     } on Exception catch (e) {
       debugPrint(
           'An error occurred when inserting a grocery item into the DB: $e');

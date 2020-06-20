@@ -15,15 +15,6 @@ class GroceryListHub extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Grocery Lists'),
-        actions: <Widget>[
-          PopupMenuButton(
-            itemBuilder: (BuildContext buildContext) {
-              return <PopupMenuEntry<String>>[
-                const PopupMenuItem(value: 'Delete', child: Text('Delete'))
-              ];
-            },
-          )
-        ],
       ),
       drawer: TopLevelDrawer(
         callingWidget: DrawerWidgets.groceryLists,
@@ -88,28 +79,17 @@ class GroceryListHub extends StatelessWidget {
                         .add(DeleteGroceryListEvent(groceryList: groceryList));
                   }
                   break;
-                case 'Edit':
-                  {
-                    BlocProvider.of<GroceryListBloc>(context)
-                        .add(GetFullGroceryListEvent(groceryList: groceryList));
-                    await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => GroceryListForm()));
-                  }
-                  break;
               }
             },
             itemBuilder: (BuildContext buildContext) =>
                 <PopupMenuEntry<String>>[
                   const PopupMenuItem(value: 'Delete', child: Text('Delete')),
-                  const PopupMenuItem(value: 'Edit', child: Text('Edit'))
                 ]),
         onTap: () async {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             BlocProvider.of<GroceryListBloc>(context)
-                .add(GetFullGroceryListEvent(groceryList: groceryList));
-            return GroceryListView();
+                .add(GetFullGroceryListEvent(groceryListId: groceryList.id));
+            return GroceryListView(groceryListId: groceryList.id);
           }));
         });
   }

@@ -167,8 +167,8 @@ class GroceryListFormState extends State<GroceryListForm> {
   }
 
   _updateGroceryList(BuildContext context, GroceryList groceryList) async {
-    BlocProvider.of<GroceryHubBloc>(context)
-        .add(EditGroceryListEvent(groceryList: groceryList));
+    BlocProvider.of<GroceryListBloc>(context)
+        .add(UpdateGroceryListEvent(groceryList: groceryList));
     Navigator.pop(context, groceryList.id);
   }
 }

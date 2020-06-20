@@ -13,8 +13,8 @@ class GroceryListRepository {
     return await grocerySqlClient.getGroceryLists();
   }
 
-  Future<GroceryList> getFullGroceryList(GroceryList groceryList) async {
-    return await grocerySqlClient.getFullGroceryList(groceryList);
+  Future<GroceryList> getFullGroceryList(int groceryListId) async {
+    return await grocerySqlClient.getFullGroceryList(groceryListId);
   }
 
   Future<void> deleteGroceryList(GroceryList groceryList) async {
@@ -30,11 +30,19 @@ class GroceryListRepository {
     return await grocerySqlClient.insertGroceryItems(groceryList, groceryItems);
   }
 
-  Future<void> updateGroceryItems(GroceryList groceryList) async {
+  Future<void> updateGroceryList(GroceryList groceryList) async {
     return await grocerySqlClient.updateGroceryList(groceryList);
   }
 
-  Future<void> updateCheckedStatus(GroceryItem groceryItem) async {
-    return await grocerySqlClient.updateCheckedStatus(groceryItem);
+  Future<GroceryItem> getGroceryItem(int itemId) async {
+    return await grocerySqlClient.getGroceryItem(itemId);
+  }
+
+  Future<void> insertNewGroceryItem(GroceryItem groceryItem, int listId) async {
+    return await grocerySqlClient.insertNewGroceryItem(groceryItem, listId);
+  }
+
+  Future<void> updateGroceryItem(GroceryItem groceryItem) async {
+    return await grocerySqlClient.updateGroceryItem(groceryItem);
   }
 }

@@ -24,16 +24,6 @@ class AddGroceryListEvent extends GroceryHubEvent {
   List<Object> get props => [groceryList];
 }
 
-class EditGroceryListEvent extends GroceryHubEvent {
-  final GroceryList groceryList;
-
-  const EditGroceryListEvent({@required this.groceryList})
-      : assert(groceryList != null);
-
-  @override
-  List<Object> get props => [groceryList];
-}
-
 class DeleteGroceryListEvent extends GroceryHubEvent {
   final GroceryList groceryList;
 
