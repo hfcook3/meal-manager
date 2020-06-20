@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:mealmanager/models/recipe_model.dart';
 import 'package:meta/meta.dart';
 
 import 'package:mealmanager/repositories/recipe_repository.dart';
@@ -15,6 +16,9 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
 
   @override
   Stream<RecipeState> mapEventToState(RecipeEvent event) async* {
+    if (event is InitializeNewRecipeEvent) {
+      yield* _mapInitializeNewRecipeEvent(event);
+    }
     if (event is GetFullRecipeEvent) {
       yield* _mapGetFullRecipeEvent(event);
     }
@@ -30,6 +34,14 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
     if (event is RemoveStepEvent) {
       yield* _mapRemoveStepEvent(event);
     }
+  }
+
+  Stream<RecipeState> _mapInitializeNewRecipeEvent(event) async* {
+    var recipe = new Recipe();
+    recipe.ingredients = new List<String>();
+    recipe.steps = new List<String>();
+
+    yield RecipeLoaded(recipe: recipe);
   }
 
   Stream<RecipeState> _mapGetFullRecipeEvent(GetFullRecipeEvent event) async* {
