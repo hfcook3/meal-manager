@@ -116,6 +116,13 @@ class RecipeView extends StatelessWidget {
           }).toList();
           BlocProvider.of<GroceryListBloc>(context).add(AddIngredientListEvent(
               groceryList: groceryList, groceryItems: groceryItems));
+
+          Navigator.push(
+              context,
+              new MaterialPageRoute(
+                  builder: (context) => new GroceryListView(
+                        groceryListId: groceryList.id,
+                      )));
         }
     }
   }

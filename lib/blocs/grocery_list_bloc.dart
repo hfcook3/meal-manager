@@ -92,8 +92,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
     if (state is GroceryListLoaded) {
       await groceryListRepository.insertGroceryItems(
           event.groceryList, event.groceryItems);
-      final groceryList = new GroceryList.withMeta(event.groceryList.id,
-          event.groceryList.name, event.groceryList.dateAdded);
+      final groceryList =
+          await groceryListRepository.getFullGroceryList(event.groceryList.id);
 
       yield GroceryListLoaded(groceryList: groceryList);
     }

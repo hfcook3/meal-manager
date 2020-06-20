@@ -54,48 +54,52 @@ class GroceryListView extends StatelessWidget {
   }
 
   Widget _buildGroceryListItems(BuildContext context, GroceryList groceryList) {
-    return ListView.builder(
-        shrinkWrap: true,
-        scrollDirection: Axis.vertical,
-        itemCount: groceryList.items.length,
-        itemBuilder: (BuildContext context, int index) {
-          final recipeItem = groceryList.items[index];
-          return Dismissible(
-            key: Key(recipeItem.id.toString()),
-            onDismissed: (direction) {
-              BlocProvider.of<GroceryListBloc>(context).add(
-                  RemoveGroceryItemEvent(
-                      groceryList: groceryList, groceryItemIndex: index));
+    if (groceryList.items == null || groceryList.items.length == 0) {
+      return Text('This grocery list is empty. Add some items!');
+    } else {
+      return ListView.builder(
+          shrinkWrap: true,
+          scrollDirection: Axis.vertical,
+          itemCount: groceryList.items.length,
+          itemBuilder: (BuildContext context, int index) {
+            final recipeItem = groceryList.items[index];
+            return Dismissible(
+              key: Key(recipeItem.id.toString()),
+              onDismissed: (direction) {
+                BlocProvider.of<GroceryListBloc>(context).add(
+                    RemoveGroceryItemEvent(
+                        groceryList: groceryList, groceryItemIndex: index));
 
-              Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text("${recipeItem.item} removed"),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () {
-                      BlocProvider.of<GroceryListBloc>(context).add(
-                          AddGroceryItemEvent(
-                              groceryList: groceryList,
-                              groceryItem: recipeItem));
-                    },
-                  )));
-            },
-            child: ListTile(
-              leading: Checkbox(
-                value: recipeItem.checked,
-                onChanged: (isChecked) {
-                  BlocProvider.of<GroceryListBloc>(context).add(
-                      CheckGroceryItemEvent(
-                          groceryItem: recipeItem,
-                          groceryList: groceryList,
-                          groceryItemIndex: index));
-                },
+                Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text("${recipeItem.item} removed"),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        BlocProvider.of<GroceryListBloc>(context).add(
+                            AddGroceryItemEvent(
+                                groceryList: groceryList,
+                                groceryItem: recipeItem));
+                      },
+                    )));
+              },
+              child: ListTile(
+                leading: Checkbox(
+                  value: recipeItem.checked,
+                  onChanged: (isChecked) {
+                    BlocProvider.of<GroceryListBloc>(context).add(
+                        CheckGroceryItemEvent(
+                            groceryItem: recipeItem,
+                            groceryList: groceryList,
+                            groceryItemIndex: index));
+                  },
+                ),
+                title: Text(
+                  recipeItem.item,
+                  style: TextStyle(fontSize: 20.0),
+                ),
               ),
-              title: Text(
-                recipeItem.item,
-                style: TextStyle(fontSize: 20.0),
-              ),
-            ),
-          );
-        });
+            );
+          });
+    }
   }
 }
