@@ -1,11 +1,17 @@
 import 'package:equatable/equatable.dart';
-import 'package:mealmanager/blocs/blocs.dart';
 import 'package:meta/meta.dart';
 
 import 'package:mealmanager/models/models.dart';
 
 abstract class RecipeEvent extends Equatable {
   const RecipeEvent();
+}
+
+class InitializeNewRecipeEvent extends RecipeEvent {
+  const InitializeNewRecipeEvent();
+
+  @override
+  List<Object> get props => [];
 }
 
 class GetFullRecipeEvent extends RecipeEvent {
