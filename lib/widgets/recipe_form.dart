@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:mealmanager/models/recipe_model.dart';
+import 'package:mealmanager/models/models.dart';
 import 'package:mealmanager/blocs/blocs.dart';
 
 class RecipeForm extends StatefulWidget {
@@ -17,12 +17,11 @@ class RecipeFormState extends State<RecipeForm> {
   final _uuid = Uuid();
 
   final ingredientsHint = 'Write a new ingredient';
+  final ingredientAmountValidationText = 'Please enter a decimal amount';
   final ingredientsValidationText = 'Please enter an ingredient';
-  final ingredientsListName = 'ingredients';
 
   final stepsHint = 'Write the next step';
   final stepsValidationText = 'Please enter a step';
-  final stepsListName = 'steps';
 
   @override
   Widget build(BuildContext context) {
@@ -48,14 +47,18 @@ class RecipeFormState extends State<RecipeForm> {
 
   Widget _buildForm(Recipe recipe) {
     var ingredientFieldList = List.generate(recipe.ingredients.length, (i) {
-      return _buildSubField(_uuid.v1(), i, recipe, ingredientsHint,
-          ingredientsValidationText, ingredientsListName,
-          initialValue: recipe.ingredients[i]);
+      return _buildIngredientField(
+          _uuid.v1(),
+          i,
+          recipe,
+          recipe.ingredients[i].amount,
+          recipe.ingredients[i].unit,
+          recipe.ingredients[i].text);
     });
 
     var stepFieldList = List.generate(recipe.steps.length, (i) {
-      return _buildSubField(
-          _uuid.v1(), i, recipe, stepsHint, stepsValidationText, stepsListName,
+      return _buildStepField(
+          _uuid.v1(), i, recipe, stepsHint, stepsValidationText,
           initialValue: recipe.steps[i]);
     });
 
@@ -99,7 +102,9 @@ class RecipeFormState extends State<RecipeForm> {
                         onPressed: () {
                           BlocProvider.of<RecipeBloc>(context).add(
                               AddIngredientEvent(
-                                  recipe: recipe, ingredient: ''));
+                                  recipe: recipe,
+                                  ingredient: new Ingredient.withInitialValues(
+                                      1.0, 'x', '')));
                         },
                       )
                     ],
@@ -152,8 +157,76 @@ class RecipeFormState extends State<RecipeForm> {
             )));
   }
 
-  Widget _buildSubField(String key, int listIndex, Recipe recipe, String hint,
-      String validationText, String fieldList,
+  Widget _buildIngredientField(String key, int listIndex, Recipe recipe,
+      double initialAmount, String initialUnit, String initialText) {
+    return Row(
+      key: Key(key),
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Expanded(
+            child: TextFormField(
+          initialValue: initialAmount.toString(),
+          decoration: InputDecoration(hintText: 'Amount'),
+          keyboardType: TextInputType.number,
+          onChanged: (amount) {
+            recipe.ingredients[listIndex].amount = double.tryParse(amount);
+          },
+          onSaved: (amount) {
+            recipe.ingredients[listIndex].amount = double.tryParse(amount);
+          },
+          validator: (value) {
+            if (double.tryParse(value) == null) {
+              return ingredientAmountValidationText;
+            }
+            return null;
+          },
+        )),
+        Expanded(
+            child: TextFormField(
+          initialValue: initialUnit,
+          decoration: InputDecoration(hintText: 'Unit'),
+          onChanged: (unit) {
+            recipe.ingredients[listIndex].unit = unit;
+          },
+          onSaved: (unit) {
+            recipe.ingredients[listIndex].unit = unit;
+          },
+        )),
+        Expanded(
+            child: TextFormField(
+          initialValue: initialText,
+          decoration: InputDecoration(hintText: ingredientsHint),
+          onChanged: (text) {
+            recipe.ingredients[listIndex].text = text;
+          },
+          onSaved: (text) {
+            recipe.ingredients[listIndex].text = text;
+          },
+          validator: (value) {
+            if (value.isEmpty) {
+              return ingredientsValidationText;
+            }
+            return null;
+          },
+        )),
+        RaisedButton(
+          child: Icon(Icons.remove),
+          color: Colors.red,
+          textColor: Colors.white,
+          shape: CircleBorder(side: BorderSide.none),
+          onPressed: () {
+            BlocProvider.of<RecipeBloc>(context).add(RemoveIngredientEvent(
+                recipe: recipe, ingredientIndex: listIndex));
+          },
+        )
+      ],
+    );
+  }
+
+  // ToDo: update ingredient part of form with number keyboard text form for amount and
+  // text form for unit
+  Widget _buildStepField(String key, int listIndex, Recipe recipe, String hint,
+      String validationText,
       {String initialValue = ''}) {
     return Row(
       key: Key(key),
@@ -164,18 +237,10 @@ class RecipeFormState extends State<RecipeForm> {
             initialValue: initialValue,
             decoration: InputDecoration(hintText: hint),
             onChanged: (text) {
-              if (fieldList == "ingredients") {
-                recipe.ingredients[listIndex] = text;
-              } else if (fieldList == "steps") {
-                recipe.steps[listIndex] = text;
-              }
+              recipe.steps[listIndex] = text;
             },
             onSaved: (text) {
-              if (fieldList == "ingredients") {
-                recipe.ingredients[listIndex] = text;
-              } else if (fieldList == "steps") {
-                recipe.steps[listIndex] = text;
-              }
+              recipe.steps[listIndex] = text;
             },
             validator: (value) {
               if (value.isEmpty) {
@@ -191,13 +256,8 @@ class RecipeFormState extends State<RecipeForm> {
           textColor: Colors.white,
           shape: CircleBorder(side: BorderSide.none),
           onPressed: () {
-            if (fieldList == "ingredients") {
-              BlocProvider.of<RecipeBloc>(context).add(RemoveIngredientEvent(
-                  recipe: recipe, ingredientIndex: listIndex));
-            } else {
-              BlocProvider.of<RecipeBloc>(context)
-                  .add(RemoveStepEvent(recipe: recipe, stepIndex: listIndex));
-            }
+            BlocProvider.of<RecipeBloc>(context)
+                .add(RemoveStepEvent(recipe: recipe, stepIndex: listIndex));
           },
         )
       ],

@@ -25,10 +25,10 @@ class GetFullRecipeEvent extends RecipeEvent {
 
 class AddIngredientEvent extends RecipeEvent {
   final Recipe recipe;
-  final String ingredient;
+  final Ingredient ingredient;
 
   const AddIngredientEvent({@required this.recipe, @required this.ingredient})
-      : assert(recipe != null);
+      : assert(recipe != null, ingredient != null);
 
   @override
   List<Object> get props => [recipe, ingredient];

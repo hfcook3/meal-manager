@@ -70,7 +70,7 @@ class RecipeView extends StatelessWidget {
           return Row(children: <Widget>[
             Icon(Icons.arrow_right),
             Text(
-              recipe.ingredients[i],
+              recipe.ingredients[i].fullIngredientText(),
               style: TextStyle(fontSize: 20.0),
             )
           ]);
@@ -112,7 +112,8 @@ class RecipeView extends StatelessWidget {
           }
 
           var groceryItems = recipe.ingredients.map<GroceryItem>((ingredient) {
-            return new GroceryItem.withNoId(ingredient, "Other", false);
+            return new GroceryItem.withNoId(
+                ingredient.fullIngredientText(), "Other", false);
           }).toList();
           BlocProvider.of<GroceryListBloc>(context).add(AddIngredientListEvent(
               groceryList: groceryList, groceryItems: groceryItems));

@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:mealmanager/models/recipe_model.dart';
+import 'package:mealmanager/models/models.dart';
 
 class RecipeSqlClient {
   Database _database;
@@ -19,10 +19,11 @@ class RecipeSqlClient {
         await db.execute(
             'CREATE TABLE Recipes(id INTEGER PRIMARY KEY, title TEXT)');
         await db.execute(
-            'CREATE TABLE Ingredients(id INTEGER PRIMARY KEY, recipeKey INTEGER, ingredient TEXT, ' +
+            'CREATE TABLE Ingredients(id INTEGER PRIMARY KEY, recipeKey INTEGER, ' +
+                'amount DOUBLE, unit VARCHAR(50), ingredient VARCHAR(50), ' +
                 'CONSTRAINT fk_recipes FOREIGN KEY (recipeKey) REFERENCES Recipes(id))');
         await db.execute(
-            'CREATE TABLE Steps(id INTEGER PRIMARY KEY, recipeKey INTEGER, step TEXT, ' +
+            'CREATE TABLE Steps(id INTEGER PRIMARY KEY, recipeKey INTEGER, step VARCHAR(250), ' +
                 'CONSTRAINT fk_recipes FOREIGN KEY (recipeKey) REFERENCES Recipes(id))');
       },
     );
@@ -46,7 +47,11 @@ class RecipeSqlClient {
     var ingredientsData = await _database
         .rawQuery('SELECT * FROM Ingredients WHERE recipeKey = ?', [recipe.id]);
     var ingredients = List.generate(ingredientsData.length, (i) {
-      return ingredientsData[i]['ingredient'].toString();
+      return Ingredient.withData(
+          ingredientsData[i]['id'],
+          ingredientsData[i]['amount'],
+          ingredientsData[i]['unit'],
+          ingredientsData[i]['ingredient']);
     });
 
     var stepsData = await _database
@@ -73,8 +78,13 @@ class RecipeSqlClient {
     // Could async these two insertions
     for (int i = 0; i < recipe.ingredients.length; i++) {
       await _database.rawInsert(
-          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
-          [id, recipe.ingredients[i]]);
+          'INSERT INTO Ingredients(recipeKey, amount, unit, ingredient) VALUES (?, ?, ?, ?)',
+          [
+            id,
+            recipe.ingredients[i].amount,
+            recipe.ingredients[i].unit,
+            recipe.ingredients[i].text
+          ]);
     }
     for (int i = 0; i < recipe.steps.length; i++) {
       await _database.rawInsert(
@@ -97,8 +107,13 @@ class RecipeSqlClient {
 
     for (int i = 0; i < recipe.ingredients.length; i++) {
       await _database.rawInsert(
-          'INSERT INTO Ingredients(recipeKey, ingredient) VALUES (?, ?)',
-          [recipe.id, recipe.ingredients[i]]);
+          'INSERT INTO Ingredients(recipeKey, amount, unit, ingredient) VALUES (?, ?, ?, ?)',
+          [
+            recipe.id,
+            recipe.ingredients[i].amount,
+            recipe.ingredients[i].unit,
+            recipe.ingredients[i].text
+          ]);
     }
     for (int i = 0; i < recipe.steps.length; i++) {
       await _database.rawInsert(

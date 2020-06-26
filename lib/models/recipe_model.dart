@@ -1,7 +1,9 @@
+import 'package:mealmanager/models/models.dart';
+
 class Recipe {
   int id;
   String title;
-  List<String> ingredients;
+  List<Ingredient> ingredients;
   List<String> steps;
 
   Recipe();

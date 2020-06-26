@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:mealmanager/models/models.dart';
 import 'package:mealmanager/models/recipe_model.dart';
 import 'package:meta/meta.dart';
 
@@ -38,7 +39,7 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
 
   Stream<RecipeState> _mapInitializeNewRecipeEvent(event) async* {
     var recipe = new Recipe();
-    recipe.ingredients = new List<String>();
+    recipe.ingredients = new List<Ingredient>();
     recipe.steps = new List<String>();
 
     yield RecipeLoaded(recipe: recipe);
