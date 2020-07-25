@@ -10,7 +10,8 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
   final RecipeRepository recipeRepository;
 
   RecipeBloc({@required this.recipeRepository})
-      : assert(recipeRepository != null);
+      : assert(recipeRepository != null),
+        super(null);
 
   @override
   RecipeState get initialState => RecipeLoading();

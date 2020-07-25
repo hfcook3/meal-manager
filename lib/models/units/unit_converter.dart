@@ -443,4 +443,59 @@ class UnitConverter {
         break;
     }
   }
+
+  static String readableUnit(CookingUnit unit) {
+    switch (unit) {
+      case CookingUnit.piece:
+        return "X";
+        break;
+      case CookingUnit.teaspoon:
+        return "TSP";
+        break;
+      case CookingUnit.tablespoon:
+        return "TBSP";
+        break;
+      case CookingUnit.fluidOunce:
+        return "fl oz";
+        break;
+      case CookingUnit.cup:
+        return "Cup";
+        break;
+      case CookingUnit.pint:
+        return "Pint";
+        break;
+      case CookingUnit.quart:
+        return "Quart";
+        break;
+      case CookingUnit.gallon:
+        return "Gallon";
+        break;
+      case CookingUnit.milliliter:
+        return "ml";
+        break;
+      case CookingUnit.liter:
+        return "L";
+        break;
+      case CookingUnit.deciliter:
+        return "dL";
+        break;
+      case CookingUnit.pound:
+        return "LB";
+        break;
+      case CookingUnit.ounce:
+        return "oz";
+        break;
+      case CookingUnit.milligram:
+        return "mg";
+        break;
+      case CookingUnit.gram:
+        return "g";
+        break;
+      case CookingUnit.kilogram:
+        return "kg";
+        break;
+      default:
+        return unit.toString();
+    }
+  }
 }

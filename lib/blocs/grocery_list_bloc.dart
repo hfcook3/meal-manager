@@ -9,7 +9,8 @@ class GroceryListBloc extends Bloc<GroceryListEvent, GroceryListState> {
   final GroceryListRepository groceryListRepository;
 
   GroceryListBloc({@required this.groceryListRepository})
-      : assert(groceryListRepository != null);
+      : assert(groceryListRepository != null),
+        super(null);
 
   @override
   GroceryListState get initialState => GroceryListEmpty();

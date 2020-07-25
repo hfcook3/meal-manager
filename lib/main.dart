@@ -6,12 +6,9 @@ import 'package:mealmanager/repositories/grocery_list_client.dart';
 import 'package:mealmanager/repositories/grocery_list_repository.dart';
 import 'package:mealmanager/repositories/recipe_sql_client.dart';
 import 'package:mealmanager/repositories/recipe_repository.dart';
-import 'package:mealmanager/SimpleBlocDelegate.dart';
 import 'package:mealmanager/widgets/meal_manager.dart';
 
 void main() async {
-  BlocSupervisor.delegate = SimpleBlocDelegate();
-
   final RecipeRepository recipeRepository =
       RecipeRepository(recipeSqlClient: new RecipeSqlClient());
 

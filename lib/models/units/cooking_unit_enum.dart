@@ -4,7 +4,6 @@ enum CookingUnit {
   teaspoon,
   tablespoon,
   fluidOunce,
-  gill,
   cup,
   pint,
   quart,

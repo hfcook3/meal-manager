@@ -9,7 +9,8 @@ class RecipeListBloc extends Bloc<RecipeListEvent, RecipeListState> {
   final RecipeRepository recipeRepository;
 
   RecipeListBloc({@required this.recipeRepository})
-      : assert(recipeRepository != null);
+      : assert(recipeRepository != null),
+        super(null);
 
   @override
   RecipeListState get initialState => RecipeListEmpty();
